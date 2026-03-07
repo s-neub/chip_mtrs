@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Autocorrelation Metrics: Durbin-Watson Test",
+    "description": "Model to monitor autocorrelation through the Durbin-Watson test",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "METRICS_MODEL",
+    "frequentlyUsed": true,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

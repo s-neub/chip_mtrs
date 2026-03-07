@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Performance Monitor: Classification",
+    "description": "Model to compute classification metrics",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "PERFORMANCE_MODEL",
+    "frequentlyUsed": true,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

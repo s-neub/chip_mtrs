@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Data Drift Monitor: Jensen-Shannon",
+    "description": "Model to compute Jensen-Shannon distances on input data",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "DATA_DRIFT_MODEL",
+    "frequentlyUsed": false,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

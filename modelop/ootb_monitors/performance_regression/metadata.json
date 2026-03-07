@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Performance Monitor: Regression",
+    "description": "Model to compute regression metrics",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "PERFORMANCE_MODEL",
+    "frequentlyUsed": true,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "inputSchema": {
+        "items": {
+            "properties": {
+                "ai_overall_status": {
+                    "role": "score",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "hitl_qa_decision": {
+                    "role": "label",
+                    "dataClass": "categorical",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

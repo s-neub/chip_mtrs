@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Concept Drift Monitor: Jensen-Shannon",
+    "description": "Model to compute the Jensen-Shannon distance on output data",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "CONCEPT_DRIFT_MODEL",
+    "frequentlyUsed": false,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

@@ -1,0 +1,16 @@
+[
+    {
+        "usage": "INPUT_ASSET",
+        "assetRole": "BASELINE_DATA",
+        "metaData": {
+            "description": "Baseline/Reference Dataset"
+        }
+    },
+    {
+        "usage": "INPUT_ASSET",
+        "assetRole": "COMPARATOR_DATA",
+        "metaData": {
+            "description": "Slice of Production Data"
+        }
+    }
+]

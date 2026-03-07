@@ -1,0 +1,12 @@
+{
+    "psi": [],
+    "csi": [],
+    "baseline_time_line_graph_monthly": {
+        "type": "bar",
+        "data": []
+    },
+    "baseline_time_line_graph_yearly": {
+        "type": "bar",
+        "data": []
+    }
+}

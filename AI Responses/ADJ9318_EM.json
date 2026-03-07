@@ -1,0 +1,172 @@
+{
+  "emProduct": [
+    {
+      "lotNo": "102544853.XCX9-9C7CC.CDP.ThHARVF.1",
+      "mediaUsedExpValidStatus": false,
+      "mediaUsedExpDate": "2026-11-03, 2026-05-15",
+      "equipCalibDueDateValidStatus": true,
+      "equipCalibDueDate": "2026-06-30",
+      "emStartDate": "2026-02-15",
+      "emEndDate": "2026-02-15",
+      "emDateValidStatus": true,
+      "emEqms": [],
+      "emMedia": [
+        {
+          "lotNo": "102544853.XCX9-9C7CC.CDP.ThHARVF.1",
+          "mediaName": "TSA_SETTLE-ADH0330_1011608180",
+          "mediaUsedExpDate": "2026-11-03",
+          "mediaUsedExpValidStatus": true
+        },
+        {
+          "lotNo": "102544853.XCX9-9C7CC.CDP.ThHARVF.1",
+          "mediaName": "TSA_CONT-ADH8873_1011608320",
+          "mediaUsedExpDate": "2026-05-15",
+          "mediaUsedExpValidStatus": true
+        }
+      ],
+      "emEquipment": [
+        {
+          "lotNo": "102544853.XCX9-9C7CC.CDP.ThHARVF.1",
+          "instrumentName": "310-INC-675-021",
+          "equipCalibDueDate": "2026-06-30",
+          "equipCalibDueDateValidStatus": true
+        }
+      ],
+      "emPlans": [
+        {
+          "planId": "202603827",
+          "totalEmPlanSample": 33,
+          "emSample": [
+            {
+              "sampleType": "2ND_VERIFICATION",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "1",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            },
+            {
+              "sampleType": "CONTACT_CT",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "5",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            },
+            {
+              "sampleType": "NV_DVN",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "3",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            },
+            {
+              "sampleType": "PASSIVE_VA_DVN",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "3",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            },
+            {
+              "sampleType": "PERSONNEL",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "4",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            },
+            {
+              "sampleType": "PERSONNEL_DVN",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "16",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            },
+            {
+              "sampleType": "VIABLE_AIR_DVN",
+              "unreceived": "0",
+              "unreceivedValidStatus": true,
+              "incomplete": "0",
+              "incompleteValidStatus": true,
+              "inprogress": "0",
+              "inprogressValidStatus": true,
+              "completed": "0",
+              "completedValidStatus": true,
+              "authorized": "1",
+              "authorizedValidStatus": true,
+              "cancelled": "0",
+              "cancelledValidStatus": true,
+              "rejected": "0",
+              "rejectedValidStatus": true,
+              "aiStatus": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "verificationTime": "2026-02-27T16:48:20"
+}

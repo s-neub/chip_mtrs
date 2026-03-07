@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Data Drift Monitor: Summary",
+    "description": "Model to compute and compare Pandas summary on input data",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "DATA_DRIFT_MODEL",
+    "frequentlyUsed": false,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

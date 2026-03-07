@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:biodi="http://bpmn.io/schema/dmn/biodi/2.0" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="Definitions_04pclrt" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.5.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.18.0">
+  <decision id="Bias" name="Bias">
+    <decisionTable id="DecisionTable_1ow9dyl" hitPolicy="COLLECT">
+      <input id="Input_1" label="Bias" biodi:width="281" camunda:inputVariable="bias">
+        <inputExpression id="InputExpression_1" typeRef="string" expressionLanguage="groovy">
+          <text></text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="passes" name="passes" typeRef="boolean" />
+      <output id="OutputClause_16d8w7o" label="reason" name="reason" typeRef="string" />
+      <output id="OutputClause_0kudou7" label="category" name="category" typeRef="string" />
+      <output id="OutputClause_1j1ztbp" label="action" name="action" typeRef="string" />
+      <rule id="DecisionRule_0kr8aek">
+        <inputEntry id="UnaryTests_18sbkr5" expressionLanguage="groovy">
+          <text>def flag = false
+bias.each{
+    entry-&gt;entry.values.each{innerList-&gt;
+        innerList.each { key, value -&gt;
+            if (key.endsWith('_disparity') &amp;&amp; (value &lt;0.8 || value &gt; 1.2)){
+                flag = true
+            }
+        }
+    }
+}
+return flag</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_19nk27i">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_17otxs5">
+          <text>"Ethical fairness disparity metrics have dropped below 0.8 or above 1.2 indicating potential Bias against a protected class"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1u3aoez">
+          <text>"Ethical Bias"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_18cne3p">
+          <text>"error"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="Bias">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

@@ -1,0 +1,25 @@
+monitor_1_stability:
+  allowed_ai_overall_status: "PASS, FAIL"
+
+monitor_3_calibration:
+  allowed_hitl_qa_decision: 
+    - Approved
+    - Rejected
+    - Reprocess
+    - Pending
+
+monitor_2_performance:
+  TP:
+    ai_overall_status: "FAIL"
+    hitl_qa_decision: "Rejected, Reprocess, Pending"
+  FP:
+    ai_overall_status: "FAIL"
+    hitl_qa_decision: "Approved"
+  TN:
+    ai_overall_status: "PASS"
+    hitl_qa_decision: "Approved, Pending"
+  FN:
+    ai_overall_status: "PASS"
+    hitl_qa_decision: "Rejected, Reprocess"
+
+# If you leave a certain scenario out (e.g. removing "Pending" from the TN `hitl_qa_decision` list), the script will automatically flag those rows as `EXCLUDE` and completely drop them from the output dataset generated for Monitor 2.

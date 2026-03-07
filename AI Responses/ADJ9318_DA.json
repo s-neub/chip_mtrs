@@ -1,0 +1,17 @@
+{
+  "isDocumentBlank": false,
+  "total_batches": "0",
+  "qe": [],
+  "validationResults": {
+    "totalDeviations": "0",
+    "failedValidations": "0"
+  },
+  "validationSummary": {
+    "verification_time": "2026-02-27T15:49:03",
+    "totalTests": "0",
+    "testsPassed": "0",
+    "testsFailed": "0",
+    "overallStatus": "PASS",
+    "ai_status": true
+  }
+}

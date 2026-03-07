@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Normality Metrics: Anderson-Darling Test",
+    "description": "Model to monitor normality through the Anderson-Darling test",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "METRICS_MODEL",
+    "frequentlyUsed": true,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

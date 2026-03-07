@@ -1,0 +1,11 @@
+{
+    "tags": [],
+    "name": "Concept Drift Monitor: Comprehensive Analysis",
+    "description": "Model to run KS, ES, JS, KL, and summary on output data",
+    "modelCategory": "MODEL_MONITORING_MODEL",
+    "defaultAssociationRole": "CONCEPT_DRIFT_MODEL",
+    "frequentlyUsed": true,
+    "custom": {
+        "modelopPackageVersion": "1.4.4"
+    }
+}

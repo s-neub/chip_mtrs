@@ -1,0 +1,36 @@
+{
+	"emProduct": [
+		{
+			"mediaUsedExpValidStatus": true,
+			"equipCalibDueDateValidStatus": true,
+			"emDateValidStatus": true,
+			"emEqms": [],
+			"emMedia": [],
+			"emEquipment": [],
+			"emPlans": [
+				{
+					"emSample": [
+						{
+							"unreceived": "0",
+							"unreceivedValidStatus": true,
+							"incomplete": "0",
+							"incompleteValidStatus": true,
+							"inprogress": "0",
+							"inprogressValidStatus": true,
+							"completed": "0",
+							"completedValidStatus": true,
+							"authorized": "0",
+							"authorizedValidStatus": true,
+							"cancelled": "0",
+							"cancelledValidStatus": true,
+							"rejected": "0",
+							"rejectedValidStatus": true,
+							"aiStatus": true
+						}
+					]
+				}
+			]
+		}
+	],
+	"verificationTime": "2026-03-04T11:32:33"
+}
