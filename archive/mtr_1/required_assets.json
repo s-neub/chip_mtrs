@@ -1,0 +1,20 @@
+{
+    "assets": [
+        {
+            "name": "mtr_1_baseline.csv",
+            "type": "dataset"
+        },
+        {
+            "name": "mtr_1_comparator.csv",
+            "type": "dataset"
+        },
+        {
+            "name": "mtr_1_baseline.json",
+            "type": "dataset"
+        },
+        {
+            "name": "mtr_1_comparator.json",
+            "type": "dataset"
+        }
+    ]
+}

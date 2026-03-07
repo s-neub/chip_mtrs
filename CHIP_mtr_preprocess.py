@@ -8,7 +8,7 @@ It performs the following operations:
     1. Derives Human Ground Truth & flattens Claude AI responses.
     2. Merges and evaluates records against mapping configurations.
     3. Splits the final dataset into Baseline (older) and Comparator (recent) sets.
-    4. Creates separate subdirectories (mtr_1, mtr_2, mtr_3).
+    4. Creates separate subdirectories (CHIP_mtr_1, CHIP_mtr_2, CHIP_mtr_3).
     5. Exports full .csv and .json datasets, stripping out unneeded columns, to preserve traceability.
     6. Generates schema, required_assets.json, and README.md in each subdirectory.
 """
@@ -266,8 +266,8 @@ def execute_pipeline(days_threshold=30):
     df_m1_base = df_base_master[df_base_master['ai_overall_status'].isin(m1_allowed)]
     df_m1_comp = df_comp_master[df_comp_master['ai_overall_status'].isin(m1_allowed)]
     
-    export_monitor_assets(df_m1_base, df_m1_comp, 'mtr_1', m1_schema, m1_desc, m1_cols_to_keep)
-    print("  -> mtr_1/ assets created successfully.")
+    export_monitor_assets(df_m1_base, df_m1_comp, 'CHIP_mtr_1', m1_schema, m1_desc, m1_cols_to_keep)
+    print("  -> CHIP_mtr_1/ assets created successfully.")
 
     # ---------------------------------------------------------
     # MONITOR 2: Operational Approval Concordance (Performance)
@@ -284,8 +284,8 @@ def execute_pipeline(days_threshold=30):
     df_m2_base = df_base_master[df_base_master['cm_term'] != 'EXCLUDE']
     df_m2_comp = df_comp_master[df_comp_master['cm_term'] != 'EXCLUDE']
     
-    export_monitor_assets(df_m2_base, df_m2_comp, 'mtr_2', m2_schema, m2_desc, m2_cols_to_keep)
-    print("  -> mtr_2/ assets created successfully.")
+    export_monitor_assets(df_m2_base, df_m2_comp, 'CHIP_mtr_2', m2_schema, m2_desc, m2_cols_to_keep)
+    print("  -> CHIP_mtr_2/ assets created successfully.")
 
     # ---------------------------------------------------------
     # MONITOR 3: QA Calibration (HITL Stability)
@@ -304,8 +304,8 @@ def execute_pipeline(days_threshold=30):
     df_m3_base = df_base_master[df_base_master['hitl_qa_decision'].isin(m3_allowed)]
     df_m3_comp = df_comp_master[df_comp_master['hitl_qa_decision'].isin(m3_allowed)]
     
-    export_monitor_assets(df_m3_base, df_m3_comp, 'mtr_3', m3_schema, m3_desc, m3_cols_to_keep)
-    print("  -> mtr_3/ assets created successfully.")
+    export_monitor_assets(df_m3_base, df_m3_comp, 'CHIP_mtr_3', m3_schema, m3_desc, m3_cols_to_keep)
+    print("  -> CHIP_mtr_3/ assets created successfully.")
     print("\n--- Pipeline Complete ---")
 
 if __name__ == "__main__":

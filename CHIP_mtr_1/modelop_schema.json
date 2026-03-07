@@ -1,0 +1,23 @@
+{
+    "inputSchema": {
+        "items": {
+            "properties": {
+                "ai_overall_status": {
+                    "role": "score",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "testName": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "ai_meets_specification": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
