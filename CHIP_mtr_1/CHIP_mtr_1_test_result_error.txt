@@ -1,0 +1,158 @@
+2026/3/10 13:58:58 batch job received
+2026/3/10 13:58:58 loading batch job
+2026/3/10 13:58:58 [info] Writing external json file <<"CHIP_mtr_1_test_results.json">> to <<"__moc_runtime/skipped-json-test-asset.0">> and skipping internal processing
+2026/3/10 13:58:58 [warning] Excluding asset because of role: <<"TEST_DATA">> :: #{<<"assetId">> => <<"7850e1c6-228f-4d78-9064-4242d8093496">>,<<"assetRole">> => <<"TEST_DATA">>,<<"assetType">> => <<"EXTERNAL_FILE">>,<<"browserUrl">> => <<"https://modelop-demo.s3.us-east-2.amazonaws.com/721abe99-3d5a-4eb7-8676-a0c9f30f695c/7850e1c6-228f-4d78-9064-4242d8093496.json">>,<<"contentHash">> => #{<<"hashType">> => <<"SHA-256">>,<<"hexString">> => <<"4fec8eee3b0e14910750772be2aa4d018f69c00b5ee5e0e1d656fb5ed11c3886">>},<<"createdDate">> => <<"2025-10-27T15:55:41.723Z">>,<<"fileFormat">> => <<"JSON">>,<<"fileSize">> => 2876,<<"fileUrl">> => <<"https://modelop-demo.s3.us-east-2.amazonaws.com/721abe99-3d5a-4eb7-8676-a0c9f30f695c/7850e1c6-228f-4d78-9064-4242d8093496.json">>,<<"filename">> => <<"example_model_test_result.json">>,<<"importedRepository">> => #{<<"lastCommitDate">> => <<"2024-05-25T17:21:56Z">>,<<"lastCommitId">> => <<"26df4b28e4e9f4a3e4a3379200373fb9684db22f">>,<<"lastSuccessfulSync">> => <<"2025-10-27T15:55:41.529Z">>,<<"lastSyncDate">> => <<"2026-03-10T13:56:00.715Z">>,<<"lastSyncMessages">> => <<"2026-03-10T13:56:00.715763878Z: https://github.com/modelop/ingest-existing-metrics.git successfully updated">>,<<"lastSyncStatus">> => <<"SUCCESS">>,<<"repositoryBranch">> => <<"master">>,<<"repositoryDirectory">> => <<"/tmp/model-manage-repos/master/721abe99-3d5a-4eb7-8676-a0c9f30f695c">>,<<"repositoryRemote">> => <<"https://github.com/modelop/ingest-existing-metrics.git">>,<<"repositoryType">> => <<"GIT_REPO">>},<<"metaData">> => #{<<"custom">> => #{},<<"modelStage">> => <<"unassigned">>,<<"tags">> => []},<<"name">> => <<"721abe99-3d5a-4eb7-8676-a0c9f30f695c/7850e1c6-228f-4d78-9064-4242d8093496.json">>,<<"repositoryInfo">> => #{<<"host">> => <<"modelop-demo.s3.us-east-2.amazonaws.com">>,<<"port">> => 443,<<"region">> => <<"us-east-2">>,<<"repositoryType">> => <<"S3_REPOSITORY">>,<<"secure">> => true}}
+2026/3/10 13:58:58 [warning] Assets are excluded when their role is contained in the following list: [<<"MODEL_TEST_SOURCE">>,<<"TRAINING_DATA">>,<<"TEST_DATA">>,<<"COMPARATOR_DATA">>,<<"BASELINE_DATA">>,<<"LICENSE_FILE">>,<<"MODEL_RUNTIME_CONTAINER">>,<<"MODEL_METADATA">>,<<"MODEL_DOCUMENTATION">>,<<"EXTERNAL_ASSETS">>]
+2026/3/10 13:58:58 [warning] The comma separated list of asset roles can be set via the following config option: 'modelop.runtime.asset-roles-to-exclude'
+2026/3/10 13:58:58 [info] Data processing function for slot 0: metrics
+2026/3/10 13:58:58 [info] Data processing function for slot 1: metrics
+2026/3/10 13:58:58 [info] input data list length:  1
+2026/3/10 13:58:58 [info] input slots list length: 1
+2026/3/10 13:58:58 [info] output data list length:  1
+2026/3/10 13:58:58 [info] output slots list length: 1
+2026/3/10 13:58:58 [info] attach_stream <<"8b00c9d7-26ad-42c1-a588-a4fd7ca081b4">> 1 <<"test_result.json">>
+2026/3/10 13:58:58 [info] attach_stream <<"8b00c9d7-26ad-42c1-a588-a4fd7ca081b4">> 0 <<"null-asset.0">>
+2026/3/10 13:58:58 [info] sensor activated: manifold.1.records.count [<0.232.0>]
+2026/3/10 13:58:58 [info] sensor activated: manifold.1.records.size [<0.228.0>]
+2026/3/10 13:58:58 [info] sensor activated: manifold.1.records.rejected.by.encoding [<0.236.0>]
+2026/3/10 13:58:58 [info] sensor activated: manifold.1.records.rejected.by.schema [<0.233.0>]
+2026/3/10 13:58:58 [info] materialize local content
+2026/3/10 13:58:58 [info] Attempting to write to file: <<"/tmp/playground/batch-8b00c9d7-26ad-42c1-a588-a4fd7ca081b4/null-asset.0">>
+2026/3/10 13:58:58 [info] Batch 8b00c9d7-26ad-42c1-a588-a4fd7ca081b4 has been fully loaded
+2026/3/10 13:58:58 [info] Batch 8b00c9d7-26ad-42c1-a588-a4fd7ca081b4 loaded..
+2026/3/10 13:58:58 [info] sensor activated: manifold.0.records.count [<0.234.0>]
+2026/3/10 13:58:58 [info] sensor activated: manifold.0.records.size [<0.230.0>]
+2026/3/10 13:58:58 [info] sensor activated: manifold.0.records.rejected.by.encoding [<0.231.0>]
+2026/3/10 13:58:58 [info] sensor activated: manifold.0.records.rejected.by.schema [<0.227.0>]
+2026/3/10 13:58:58 [info] Directory, /tmp/playground/7717519/outputDir, successfully created
+2026/3/10 13:58:58 [info] fetching file "example_job.json" from "https://modelop-demo.s3.us-east-2.amazonaws.com/721abe99-3d5a-4eb7-8676-a0c9f30f695c/b3510021-31b3-49c7-a6a0-1b21e403c01d.json" and placing it here: "/tmp/playground/7717519"
+2026/3/10 13:58:58 [info] get_credentials for: <<"modelop-demo.s3.us-east-2.amazonaws.com:443/721abe99-3d5a-4eb7-8676-a0c9f30f695c/b3510021-31b3-49c7-a6a0-1b21e403c01d.json">>
+2026/3/10 13:58:58 [info] credentials found with path: <<>>
+2026/3/10 13:58:58 [info] fetch of file "example_job.json" from "https://modelop-demo.s3.us-east-2.amazonaws.com/721abe99-3d5a-4eb7-8676-a0c9f30f695c/b3510021-31b3-49c7-a6a0-1b21e403c01d.json" complete: ok
+2026/3/10 13:58:58 [info] fetching file "__moc_runtime/skipped-json-test-asset.0" from "https://modelop-demo.s3.us-east-2.amazonaws.com/ec1886b9-cc83-4dce-99a9-764a5c53e350.json" and placing it here: "/tmp/playground/7717519"
+2026/3/10 13:58:58 [info] get_credentials for: <<"modelop-demo.s3.us-east-2.amazonaws.com:443/ec1886b9-cc83-4dce-99a9-764a5c53e350.json">>
+2026/3/10 13:58:58 [info] credentials found with path: <<>>
+2026/3/10 13:58:59 [info] fetch of file "__moc_runtime/skipped-json-test-asset.0" from "https://modelop-demo.s3.us-east-2.amazonaws.com/ec1886b9-cc83-4dce-99a9-764a5c53e350.json" complete: ok
+2026/3/10 13:58:59 [info] Attempting to write to file: <<"/tmp/playground/7717519/readme.md">>
+2026/3/10 13:58:59 [info] Attempting to write to file: <<"/tmp/playground/7717519/__moc_runtime/model_definition.job.json">>
+2026/3/10 13:58:59 [info] (pre) MODEL-CONSOLE: no required libraries detected
+2026/3/10 13:59:00 [info] (pre) MODEL-CONSOLE: FastScore model runner for Python
+2026/3/10 13:59:00 [info] jet startup complete
+2026/3/10 13:59:00 [info] state changes to RUNNING
+2026/3/10 13:59:00 [info] MODEL-CONSOLE: (RecordsetBatcher) threshold set to 1
+2026/3/10 13:59:00 [info] init succeeded
+2026/3/10 13:59:00 [info] state changes to FINISHING
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: (RecordsetBatcher) flushing on EOF
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: (RecordsetBatcher) no recordset at slot 0
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: (RecordsetBatcher) populating slot 0 with asset at ./__moc_runtime/skipped-json-test-asset.0
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: Traceback (most recent call last):
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/_fastscore/recordset_batcher.py", line 62, in flush
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     json_array = read_json(skipped_json_test_asset)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 199, in wrapper
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return func(*args, **kwargs)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 299, in wrapper
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return func(*args, **kwargs)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 563, in read_json
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return json_reader.read()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 694, in read
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     obj = self._get_object_parser(self.data)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 716, in _get_object_parser
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     obj = FrameParser(json, **kwargs).parse()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 831, in parse
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     self._parse_no_numpy()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 1078, in _parse_no_numpy
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     self.obj = DataFrame(
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/core/frame.py", line 529, in __init__
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     mgr = init_dict(data, index, columns, dtype=dtype)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/core/internals/construction.py", line 287, in init_dict
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return arrays_to_mgr(arrays, data_names, index, columns, dtype=dtype)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/core/internals/construction.py", line 80, in arrays_to_mgr
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     index = extract_index(arrays)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/core/internals/construction.py", line 401, in extract_index
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     raise ValueError("arrays must all be same length")
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: ValueError: arrays must all be same length
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: During handling of the above exception, another exception occurred:
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: Traceback (most recent call last):
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/jet.py", line 55, in main
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     runner(sock_name, client_secret)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/jet.py", line 125, in runner
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     recordsets = _RecordsetBatcher.flush()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/_fastscore/recordset_batcher.py", line 64, in flush
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     json_array = read_json(skipped_json_test_asset, lines=True)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 199, in wrapper
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return func(*args, **kwargs)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 299, in wrapper
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return func(*args, **kwargs)
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 563, in read_json
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     return json_reader.read()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 692, in read
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     obj = self._get_object_parser(self._combine_lines(data_lines))
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 716, in _get_object_parser
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     obj = FrameParser(json, **kwargs).parse()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 831, in parse
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     self._parse_no_numpy()
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:   File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 1079, in _parse_no_numpy
+2026/3/10 13:59:01 [info] MODEL-CONSOLE:     loads(json, precise_float=self.precise_float), dtype=None
+2026/3/10 13:59:01 [info] MODEL-CONSOLE: ValueError: Expected object or value
+2026/3/10 13:59:02 [error] Model source error:   File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/_fastscore/recordset_batcher.py", line 62, in flush
+    json_array = read_json(skipped_json_test_asset)
+  File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 199, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 299, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 563, in read_json
+    return json_reader.read()
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 694, in read
+    obj = self._get_object_parser(self.data)
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 716, in _get_object_parser
+    obj = FrameParser(json, **kwargs).parse()
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 831, in parse
+    self._parse_no_numpy()
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 1078, in _parse_no_numpy
+    self.obj = DataFrame(
+  File "/usr/local/lib/python3.9/site-packages/pandas/core/frame.py", line 529, in __init__
+    mgr = init_dict(data, index, columns, dtype=dtype)
+  File "/usr/local/lib/python3.9/site-packages/pandas/core/internals/construction.py", line 287, in init_dict
+    return arrays_to_mgr(arrays, data_names, index, columns, dtype=dtype)
+  File "/usr/local/lib/python3.9/site-packages/pandas/core/internals/construction.py", line 80, in arrays_to_mgr
+    index = extract_index(arrays)
+  File "/usr/local/lib/python3.9/site-packages/pandas/core/internals/construction.py", line 401, in extract_index
+    raise ValueError("arrays must all be same length")
+ValueError: arrays must all be same length
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/jet.py", line 55, in main
+    runner(sock_name, client_secret)
+  File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/jet.py", line 125, in runner
+    recordsets = _RecordsetBatcher.flush()
+  File "/fastscore/lib/engine-0.0.0+build.2229.ref3551332/priv/runners/python3/_fastscore/recordset_batcher.py", line 64, in flush
+    json_array = read_json(skipped_json_test_asset, lines=True)
+  File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 199, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.9/site-packages/pandas/util/_decorators.py", line 299, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 563, in read_json
+    return json_reader.read()
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 692, in read
+    obj = self._get_object_parser(self._combine_lines(data_lines))
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 716, in _get_object_parser
+    obj = FrameParser(json, **kwargs).parse()
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 831, in parse
+    self._parse_no_numpy()
+  File "/usr/local/lib/python3.9/site-packages/pandas/io/json/_json.py", line 1079, in _parse_no_numpy
+    loads(json, precise_float=self.precise_float), dtype=None
+ValueError: Expected object or value
+Traceback (most recent call last):
+(RecordsetBatcher) populating slot 0 with asset at ./__moc_runtime/skipped-json-test-asset.0
+(RecordsetBatcher) flushing on EOF
+(RecordsetBatcher) no recordset at slot 0
+
+2026/3/10 13:59:02 [error] runner exits prematurely (exit status = 1)
+2026/3/10 13:59:02 [info] closing file: <<"/tmp/playground/batch-8b00c9d7-26ad-42c1-a588-a4fd7ca081b4/null-asset.0">>
+2026/3/10 13:59:02 [info] closing file: <<"/tmp/playground/batch-8b00c9d7-26ad-42c1-a588-a4fd7ca081b4/test_result.json">>
+2026/3/10 13:59:02 [info] state changes to ERROR
+2026/3/10 13:59:02 [info] state changes to INIT
+2026/3/10 13:59:02 batch job failed
+2026/3/10 13:59:02 Records in/out: 0/0
