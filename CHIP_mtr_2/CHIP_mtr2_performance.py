@@ -3,8 +3,7 @@ ModelOp Center Monitor 2: Operational Approval Concordance (Performance)
 ------------------------------------------------------------------------
 Evaluates AI predictions against Human Ground Truth (Classification).
 
-Best Practice: Uses infer.validate_schema() to read the 
-schema asset (e.g., blank CSV) attached in the ModelOp UI.
+Best Practice: keep init lightweight and rely on runtime-provided dataframes.
 Includes automatic binary mapping for strict OOTB classification compatibility.
 """
 
@@ -13,7 +12,6 @@ import pandas as pd
 import json
 import sys
 import modelop.monitors.performance as performance
-import modelop.schema.infer as infer
 import modelop.utils as utils
 
 logger = utils.configure_logger()
@@ -161,11 +159,6 @@ def init(job_json: dict) -> None:
     JOB = job_json or {}
 
     try:
-        infer.validate_schema(JOB)
-    except Exception as e:
-        logger.warning(f"Schema validation skipped or failed in init: {e}")
-
-    try:
         job = json.loads(JOB.get("rawJson", "{}"))
     except Exception as e:
         logger.warning(f"Could not parse rawJson in init. Falling back to defaults: {e}")
@@ -236,55 +229,12 @@ if __name__ == "__main__":
     
     print("Testing Monitor 2 locally...")
     
-    # 1. Load the mock job JSON to simulate the platform environment
+    # 1. Build a minimal mock job JSON to simulate platform init payload
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    try:
-        with open(os.path.join(script_dir, 'modelop_schema.json'), 'r') as f:
-            schema_from_file = json.load(f)
-    except FileNotFoundError:
-        print("[!] modelop_schema.json not found. Run mtr_preprocess.py first.")
-        sys.exit(1)
-
-    # Convert preprocess schema (inputSchema.items.properties) to ModelOp infer format (fields array)
-    # M2 needs exactly one score (AI prediction) and one label (ground truth): ai_overall_status=score, hitl_qa_decision=label
-    props = schema_from_file.get("inputSchema", {}).get("items", {}).get("properties", {})
-    fields = []
-    for name, p in props.items():
-        if name == "ai_overall_status":
-            role = "score"
-        elif name == "hitl_qa_decision":
-            role = "label"
-        else:
-            role = p.get("role", "predictor")
-            if role == "score":
-                role = "predictor"
-            if role == "non-predictor":
-                role = "non_predictor"
-        data_class = p.get("dataClass", "categorical")
-        if data_class not in ("numerical", "categorical"):
-            data_class = "categorical"
-        fields.append({
-            "name": name,
-            "role": role,
-            "dataClass": data_class,
-            "driftCandidate": role in ("predictor", "non_predictor"),
-            "specialValues": [],
-            "protectedClass": False,
-            "scoringOptional": False,
-            "type": "string" if p.get("type") not in ("int", "float", "double", "long", "string", "boolean", "null") else p.get("type", "string")
-        })
-    mock_schema_def = {"fields": fields}
-
-    # ModelOp expects modelMetaData.inputSchema = [ { "schemaDefinition": <schema> } ]
     mock_job = {
         "rawJson": json.dumps({
-            "referenceModel": {
-                "storedModel": {
-                    "modelMetaData": {
-                        "inputSchema": [{"schemaDefinition": mock_schema_def}]
-                    }
-                }
-            }
+            "referenceModel": {},
+            "jobParameters": {}
         })
     }
     

@@ -18,7 +18,7 @@ Evaluates AI-vs-HITL concordance using classification metrics and class balance 
 
 ## Runtime Initialization Contract
 - Entry points are `init(job_json)` and `metrics(dataframe)`.
-- `init()` stores the runtime `JOB` object, validates schema via `infer.validate_schema(job_json)`, and parses `rawJson.jobParameters` with defaults.
+- `init()` stores the runtime `JOB` object and parses `rawJson.jobParameters` with defaults.
 - Optional job parameters:
   - `AI_FAIL_VALUES` (default: `["FAIL"]`) for AI predicted positive class mapping.
   - `HITL_POSITIVE_VALUES` (default: `["REJECTED", "REPROCESS", "PENDING"]`) for HITL positive class mapping.

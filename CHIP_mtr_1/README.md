@@ -19,7 +19,7 @@ Tracks AI output stability and drift between baseline and comparator windows.
 
 ## Runtime Initialization Contract
 - Entry points are `init(job_json)` and `metrics(df_baseline, df_sample)`.
-- `init()` stores the runtime `JOB` object, validates schema via `infer.validate_schema(job_json)`, and parses `rawJson.jobParameters` with defaults.
+- `init()` stores the runtime `JOB` object and parses `rawJson.jobParameters` with defaults.
 - Optional job parameters:
   - `AI_FAIL_VALUES` (default: `["FAIL"]`) for converting AI status to numeric score.
   - `M1_TOP_N_FEATURES` (default: `20`) to cap plotted feature count.

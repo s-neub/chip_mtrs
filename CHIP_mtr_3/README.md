@@ -19,7 +19,7 @@ Tracks HITL reviewer calibration drift, intervention patterns, and decision stab
 
 ## Runtime Initialization Contract
 - Entry points are `init(job_json)` and `metrics(df_baseline, df_sample)`.
-- `init()` stores the runtime `JOB` object, validates schema via `infer.validate_schema(job_json)`, parses `rawJson.jobParameters`, and captures `referenceModel.group` into `GROUP`.
+- `init()` stores the runtime `JOB` object, parses `rawJson.jobParameters`, and captures `referenceModel.group` into `GROUP`.
 - Optional job parameters:
   - `AI_FAIL_VALUES` (default: `["FAIL"]`) for AI status mapping.
   - `HITL_POSITIVE_VALUES` (default: `["REJECTED", "REPROCESS", "PENDING"]`) for HITL decision mapping.
