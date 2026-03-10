@@ -221,7 +221,13 @@ def get_min_max_values_keys_from_dict(values_dict: dict) -> dict:
 
     """
 
-    assert values_dict != {}, "values_dict must not be empty!"
+    if values_dict == {}:
+        return {
+            "min_feature": None,
+            "min_value": None,
+            "max_feature": None,
+            "max_value": None,
+        }
 
     values_dict_no_nulls = {k: v for k, v in values_dict.items() if v is not None}
 

@@ -132,11 +132,26 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     otherwise 1.0. Implement by setting the weight column in the preprocess or upstream
     so the dataframe passed here already has the desired per-record weights.
     """
-    
+    # Ensure score column is numeric for stability (weight * score); avoid ufunc 'divide' errors
+    df_baseline = df_baseline.copy()
+    df_sample = df_sample.copy()
+    if "ai_overall_status" in df_baseline.columns and not pd.api.types.is_numeric_dtype(df_baseline["ai_overall_status"]):
+        for df in (df_baseline, df_sample):
+            if "ai_overall_status" in df.columns:
+                df["ai_overall_status"] = df["ai_overall_status"].apply(
+                    lambda x: 1.0 if str(x).strip().upper() == "FAIL" else 0.0
+                )
+    if "hitl_qa_decision" in df_baseline.columns and not pd.api.types.is_numeric_dtype(df_baseline["hitl_qa_decision"]):
+        for df in (df_baseline, df_sample):
+            if "hitl_qa_decision" in df.columns:
+                df["hitl_qa_decision"] = df["hitl_qa_decision"].apply(
+                    lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+                )
+
     # 1. Initialize & Compute Stability Metrics (PSI, CSI)
     stability_monitor = stability.StabilityMonitor(
-        df_baseline=df_baseline, 
-        df_sample=df_sample, 
+        df_baseline=df_baseline,
+        df_sample=df_sample,
         job_json=JOB
     )
     stability_metrics = stability_monitor.compute_stability_indices()

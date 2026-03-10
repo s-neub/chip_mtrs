@@ -291,6 +291,11 @@
                     "role": "predictor",
                     "dataClass": "categorical",
                     "type": "string"
+                },
+                "weight": {
+                    "role": "weight",
+                    "dataClass": "numerical",
+                    "type": "float"
                 }
             }
         }

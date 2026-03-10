@@ -50,14 +50,14 @@ isProject: false
 **Planned changes:**
 
 - **Always write both baseline and comparator**  
-  In `export_monitor_assets()`, always write baseline and comparator CSV/JSON for each monitor, even when the corresponding DataFrame is empty (write empty list/empty CSV with headers). This guarantees both assets exist for ModelOp and for local testing.
+In `export_monitor_assets()`, always write baseline and comparator CSV/JSON for each monitor, even when the corresponding DataFrame is empty (write empty list/empty CSV with headers). This guarantees both assets exist for ModelOp and for local testing.
 - **Data-driven split date (record-volume–oriented)**  
-  Replace or complement the fixed `days_threshold` with a threshold derived from the data so both segments have adequate volume when possible:
+Replace or complement the fixed `days_threshold` with a threshold derived from the data so both segments have adequate volume when possible:
   - **Option A (recommended):** Compute a single split date from `df_final['ai_verification_time']` so that both baseline and comparator have at least a minimum record count (e.g. 10 or 20). If the earliest date plus min count already exceeds half the data, use the median (or configurable percentile) date as the split.
   - **Option B:** Keep a configurable `days_threshold` but compute a **default** when not provided: e.g. use the median (or 60th percentile) of `ai_verification_time` so baseline ≈ 50–60% and comparator ≈ 40–50%.
   - Add a small helper, e.g. `compute_threshold_date(df_final, min_records_baseline=20, min_records_comparator=20)` or `compute_threshold_date(df_final, percentile=0.6)`, and use it in `execute_pipeline()` so `threshold_date` is set from data. Retain an optional override (e.g. `days_threshold` or explicit `threshold_date`) for reproducibility.
 - **Documentation**  
-  In the script docstring or comments, document that the split is based on `ai_verification_time`, that the threshold can be record-volume–based or percentile-based, and that cloud/JSON sources (activity log, feedback, AI Responses) drive the date range.
+In the script docstring or comments, document that the split is based on `ai_verification_time`, that the threshold can be record-volume–based or percentile-based, and that cloud/JSON sources (activity log, feedback, AI Responses) drive the date range.
 
 ---
 
@@ -76,7 +76,7 @@ isProject: false
   - `date-60`
   - `volume-5000` (record-volume–based split with baseline size 5000)
   - `percentile-0.6` (if using percentile-based split)
-    So the format is `"{method}-{value}"` where method is one of date | volume | percentile and value is the numeric or percentile value used.
+  So the format is `"{method}-{value}"` where method is one of date | volume | percentile and value is the numeric or percentile value used.
 
 **Configurability (fold in from [map.py](c:\Users\samne\PycharmProjects\chip_mtrs\map.py)):** Support the same split and config options as map.py so the pipeline is consistent and auditable:
 
@@ -142,11 +142,11 @@ Use [BMS_Data_Discovery_Report.pdf](c:\Users\samne\PycharmProjects\chip_mtrs\arc
   - [CHIP_mtr_2/CHIP_mtr2_performance.py](c:\Users\samne\PycharmProjects\chip_mtrs\CHIP_mtr_2\CHIP_mtr2_performance.py): Load `CHIP_mtr_2_comparator.json`.
   - [CHIP_mtr_3/CHIP_mtr3_hitl_stability.py](c:\Users\samne\PycharmProjects\chip_mtrs\CHIP_mtr_3\CHIP_mtr3_hitl_stability.py): Load `CHIP_mtr_3_baseline.json` and `CHIP_mtr_3_comparator.json`.
 - **Write metrics payload to JSON on each test run**  
-  In each monitor’s `if __name__ == "__main__"` block, after `results = list(metrics(...))`, write the yielded payload to a JSON file so every test run persists the last output, e.g.:
+In each monitor’s `if __name__ == "__main__"` block, after `results = list(metrics(...))`, write the yielded payload to a JSON file so every test run persists the last output, e.g.:
   - M1: `CHIP_mtr_1_test_results.json`
   - M2: `CHIP_mtr_2_test_results.json`
   - M3: `CHIP_mtr_3_test_results.json`  
-    Use the same directory as the script (or the current working directory). Write with `json.dump(results[0], f, indent=2)` (and handle non-serializable types if needed, e.g. numpy floats).
+  Use the same directory as the script (or the current working directory). Write with `json.dump(results[0], f, indent=2)` (and handle non-serializable types if needed, e.g. numpy floats).
 
 ---
 
@@ -229,6 +229,8 @@ flowchart LR
   I --> J3
 ```
 
+
+
 ---
 
 ## 6. References
@@ -236,3 +238,4 @@ flowchart LR
 - [Data & Concept Drift Monitoring](https://modelopdocs.atlassian.net/wiki/spaces/dv32/pages/1764461951/Data+Concept+Drift+Monitoring) — baseline vs sample, drift metrics, output shape.
 - [Performance Monitoring](https://modelopdocs.atlassian.net/wiki/spaces/dv32/pages/1764461664/Performance+Monitoring) — sample-only input, classification metrics, output shape.
 - [Monitor Output Structure](https://modelopdocs.atlassian.net/wiki/spaces/dv33/pages/2051900216/Monitor+Output+Structure) — exact keys and formats for charts and tables.
+

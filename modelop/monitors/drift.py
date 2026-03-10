@@ -856,10 +856,13 @@ class DriftDetector:
                 if df_baseline.dtypes[col] == "object"
             ]
             print("Identified categorical column(s): ", categorical_columns)
+        else:
+            categorical_columns = list(categorical_columns)
 
-        # Cast categorical values as strings
-        df_baseline[categorical_columns] = df_baseline[categorical_columns].astype(str)
-        df_sample[categorical_columns] = df_sample[categorical_columns].astype(str)
+        # Cast categorical values as strings (list indexer required by pandas)
+        if categorical_columns:
+            df_baseline[categorical_columns] = df_baseline[categorical_columns].astype(str)
+            df_sample[categorical_columns] = df_sample[categorical_columns].astype(str)
 
         # Infer numerical columns if not specified
         if numerical_columns is None:
@@ -870,10 +873,13 @@ class DriftDetector:
                 if df_baseline.dtypes[col] in num_types
             ]
             print("Identified numerical column(s): ", numerical_columns)
+        else:
+            numerical_columns = list(numerical_columns)
 
-        # Cast numerical values as floats
-        df_baseline[numerical_columns] = df_baseline[numerical_columns].astype(float)
-        df_sample[numerical_columns] = df_sample[numerical_columns].astype(float)
+        # Cast numerical values as floats (list indexer required by pandas)
+        if numerical_columns:
+            df_baseline[numerical_columns] = df_baseline[numerical_columns].astype(float)
+            df_sample[numerical_columns] = df_sample[numerical_columns].astype(float)
 
         # Set attributes
         self.df_baseline = df_baseline
@@ -1490,6 +1496,9 @@ def summarize_df(
         Summary of each column.
     """
 
+    numerical_columns = list(numerical_columns) if numerical_columns else []
+    categorical_columns = list(categorical_columns) if categorical_columns else []
+
     check_columns_in_dataframe(
         dataframe=dataframe, columns=numerical_columns + categorical_columns
     )
@@ -1512,16 +1521,13 @@ def summarize_df(
         categorical_df_summary = categorical_df.describe()
         categorical_nans = categorical_df.isna().sum()
         categorical_df_summary.loc["count_of_nulls"] = categorical_nans
-        # Change possible numpy ints to floats to make then JSON serializable
+        # Change possible numpy ints to floats to make then JSON serializable (use .loc to avoid chained assignment)
         for col in categorical_df_summary.columns:
             for row in range(categorical_df_summary[col].shape[0]):
-                if isinstance(
-                    categorical_df_summary[col].iloc[row],
-                    (numpy.int64, numpy.int32),
-                ):
-                    categorical_df_summary.iloc[row][col] = int(
-                        categorical_df_summary.iloc[row][col]
-                    )
+                val = categorical_df_summary[col].iloc[row]
+                if isinstance(val, (numpy.int64, numpy.int32)):
+                    idx = categorical_df_summary.index[row]
+                    categorical_df_summary.loc[idx, col] = int(val)
     else:
         categorical_df_summary = pandas.DataFrame()
 
@@ -1721,8 +1727,8 @@ def kl_metric(
         # get index of bucketed Series of sample
         s_index = set(df_2_counts.index)
 
-        # get intersection of b_index and s_index
-        ind_intersection = b_index.intersection(s_index)
+        # get intersection of b_index and s_index (use list for pandas indexer)
+        ind_intersection = list(b_index.intersection(s_index))
 
         # get distribution of baseline data and convert to percentages
         b_dist = (df_1_counts[ind_intersection] / df_1.shape[0]).values

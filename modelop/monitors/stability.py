@@ -950,37 +950,44 @@ class StabilityMonitor:
                 duplicates="drop",
                 include_lowest=True,
             )
-            # aggregate by Sum
-            bivar_tbl = dataframe.groupby(["Var_Range"]).sum()
+            # aggregate by Sum (only sum numeric weight/score columns to avoid datetime64 sum error)
+            sum_cols = [stability_monitor.weight_var_name]
+            if stability_monitor.score_provided:
+                sum_cols.append(stability_monitor.weighted_score_name)
+            bivar_tbl = dataframe[["Var_Range"] + sum_cols].groupby(["Var_Range"]).sum()
 
         # If feature is categorical, use each value as a bucket
         else:
-            bivar_tbl = dataframe.groupby([fvarname]).sum()
+            sum_cols = [stability_monitor.weight_var_name]
+            if stability_monitor.score_provided:
+                sum_cols.append(stability_monitor.weighted_score_name)
+            bivar_tbl = dataframe[[fvarname] + sum_cols].groupby([fvarname]).sum()
             bivar_tbl.index = pandas.CategoricalIndex(bivar_tbl.index)
 
         bivar_tbl["Var_Range"] = bivar_tbl.index
 
-        # populate stability_index_table given the baseline dataset
+        # populate stability_index_table given the baseline dataset (use iloc for position-based access; index may be non-integer)
         if source == "train":
             for i in range(bivar_tbl.shape[0]):
+                row = bivar_tbl.iloc[i]
                 stability_index_table[fvarname].loc[
                     i + offset_rows, "bucket"
-                ] = bivar_tbl.loc[i, "Var_Range"]
+                ] = row["Var_Range"]
 
                 stability_index_table[fvarname].loc[
                     i + offset_rows, "train_count"
-                ] = bivar_tbl.loc[i, stability_monitor.weight_var_name]
+                ] = row[stability_monitor.weight_var_name]
 
                 stability_index_table[fvarname].loc[
                     i + offset_rows, "train_percent"
-                ] = (bivar_tbl.loc[i, stability_monitor.weight_var_name] / total_cases)
+                ] = (row[stability_monitor.weight_var_name] / total_cases)
 
                 # TODO: Consider edge case where denominator=0 (no records in bucket)
                 if stability_monitor.score_provided:
                     stability_index_table[fvarname].loc[
                         i + offset_rows, "train_mean_score"
                     ] = (
-                        bivar_tbl.loc[i, stability_monitor.weighted_score_name]
+                        row[stability_monitor.weighted_score_name]
                         / stability_index_table[fvarname].loc[
                             i + offset_rows, "train_count"
                         ]
@@ -1000,8 +1007,8 @@ class StabilityMonitor:
         else:
 
             for i in range(bivar_tbl.shape[0]):
-                # Current feature value in eval dataset
-                fvarname_value = bivar_tbl.loc[i, "Var_Range"]
+                row = bivar_tbl.iloc[i]
+                fvarname_value = row["Var_Range"]
 
                 # value in eval has been encountered in train
                 if fvarname_value in stability_index_table[fvarname]["bucket"].values:
@@ -1014,10 +1021,10 @@ class StabilityMonitor:
 
                     stability_index_table[fvarname].loc[
                         row_idx, "eval_count"
-                    ] = bivar_tbl.loc[i, stability_monitor.weight_var_name]
+                    ] = row[stability_monitor.weight_var_name]
 
                     stability_index_table[fvarname].loc[row_idx, "eval_percent"] = (
-                        bivar_tbl.loc[i, stability_monitor.weight_var_name]
+                        row[stability_monitor.weight_var_name]
                         / total_cases
                     )
 
@@ -1025,7 +1032,7 @@ class StabilityMonitor:
                         stability_index_table[fvarname].loc[
                             row_idx, "eval_mean_score"
                         ] = (
-                            bivar_tbl.loc[i, stability_monitor.weighted_score_name]
+                            row[stability_monitor.weighted_score_name]
                             / stability_index_table[fvarname].loc[row_idx, "eval_count"]
                         )
                     else:
@@ -1051,10 +1058,10 @@ class StabilityMonitor:
                     # fill values for eval
                     stability_index_table[fvarname].loc[
                         row_idx, "eval_count"
-                    ] = bivar_tbl.loc[i, stability_monitor.weight_var_name]
+                    ] = row[stability_monitor.weight_var_name]
 
                     stability_index_table[fvarname].loc[row_idx, "eval_percent"] = (
-                        bivar_tbl.loc[i, stability_monitor.weight_var_name]
+                        row[stability_monitor.weight_var_name]
                         / total_cases
                     )
 
@@ -1062,7 +1069,7 @@ class StabilityMonitor:
                         stability_index_table[fvarname].loc[
                             row_idx, "eval_mean_score"
                         ] = (
-                            bivar_tbl.loc[i, stability_monitor.weighted_score_name]
+                            row[stability_monitor.weighted_score_name]
                             / stability_index_table[fvarname].loc[row_idx, "eval_count"]
                         )
                     else:
