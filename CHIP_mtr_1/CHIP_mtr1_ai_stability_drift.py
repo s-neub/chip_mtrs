@@ -34,10 +34,27 @@ def _to_native(x):
     return x
 
 
+def _get_date_range(df: pd.DataFrame):
+    """Get first and last timestamp from dataframe for monitor output tracking. Prefers ai_verification_time."""
+    if df is None or df.empty:
+        return None, None
+    date_cols = ['ai_verification_time', 'date_generated', 'first_activity_timestamp', 'last_activity_timestamp', 'hitl_review_time']
+    for col in date_cols:
+        if col not in df.columns:
+            continue
+        try:
+            s = pd.to_datetime(df[col], errors='coerce').dropna()
+            if s.empty:
+                continue
+            return s.min().isoformat(), s.max().isoformat()
+        except Exception:
+            continue
+    return None, None
+
+
 def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
-    """Build ModelOp chart/table payloads from stability/drift result and sample dataframe."""
+    """Build ModelOp chart/table payloads per Monitor Output Structure (bar, horizontal bar, table, scatter, donut, pie)."""
     out = {}
-    # --- generic_bar_graph: PSI/CSI and JS drift by feature ---
     categories, psi_vals, js_vals = [], [], []
     stab = result.get('stability')
     if stab and isinstance(stab, list) and len(stab) > 0 and 'values' in stab[0]:
@@ -56,19 +73,39 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
                 psi_vals.append(_to_native(result[k]) if result.get(k) is not None else 0)
                 jv = result.get(feat + '_js_distance')
                 js_vals.append(_to_native(jv) if jv is not None else 0)
-    if categories:
+    n = len(categories)
+    if n:
+        psi_list = psi_vals[:n]
+        js_list = (js_vals + [0] * n)[:n]
+        # Vertical bar: descriptive series labels (PSI, JS Distance) for UI
         out['generic_bar_graph'] = {
             'title': 'PSI / Drift by feature',
             'x_axis_label': 'Feature',
             'y_axis_label': 'Index / Distance',
             'rotated': False,
-            'data': {
-                'data1': psi_vals[:len(categories)],
-                'data2': (js_vals + [0] * len(categories))[:len(categories)]
-            },
+            'data': {'PSI': psi_list, 'JS Distance': js_list},
             'categories': categories
         }
-    # --- generic_table: key metrics ---
+        # Horizontal bar: same series labels
+        out['horizontal_bar_graph'] = {
+            'title': 'PSI / Drift by feature (horizontal)',
+            'x_axis_label': 'Index / Distance',
+            'y_axis_label': 'Feature',
+            'rotated': True,
+            'data': {'PSI': psi_list, 'JS Distance': js_list},
+            'categories': categories
+        }
+        # Scatter: CSI vs JS by feature
+        scatter_pts = [[psi_list[i], js_list[i]] for i in range(n) if psi_list[i] is not None and js_list[i] is not None]
+        if scatter_pts:
+            out['generic_scatter_plot'] = {
+                'title': 'Stability (CSI) vs Drift (JS) by feature',
+                'x_axis_label': 'CSI (Stability Index)',
+                'y_axis_label': 'Jensen–Shannon distance',
+                'type': 'scatter',
+                'data': {'Features': scatter_pts}
+            }
+    # --- generic_table: key metrics (consistent keys for UI) ---
     rows = []
     if 'CSI_maxCSIValue' in result:
         rows.append({'Metric': 'Max CSI', 'Feature': result.get('CSI_maxCSIValueFeature', ''), 'Value': _to_native(result['CSI_maxCSIValue'])})
@@ -80,14 +117,22 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
     if not rows:
         rows.append({'Metric': 'Stability/Drift', 'Feature': '-', 'Value': '-'})
     out['generic_table'] = rows
-    # --- generic_donut_chart: ai_overall_status in sample ---
+    # --- Part-to-whole: donut and pie (ModelOp generic_donut_chart, generic_pie_chart) ---
     if 'ai_overall_status' in df_sample.columns:
         vc = df_sample['ai_overall_status'].astype(str).value_counts()
+        counts = _to_native(vc.tolist())
+        cats = _to_native(vc.index.tolist())
         out['generic_donut_chart'] = {
-            'title': 'AI overall status (sample)',
+            'title': 'AI overall status (comparator)',
             'type': 'donut',
-            'data': {'data1': _to_native(vc.tolist())},
-            'categories': _to_native(vc.index.tolist())
+            'data': {'Count': counts},
+            'categories': cats
+        }
+        out['generic_pie_chart'] = {
+            'title': 'AI overall status (comparator)',
+            'type': 'pie',
+            'data': {'Count': counts},
+            'categories': cats
         }
     return out
 
@@ -123,9 +168,13 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     - data_drift: list of drift test results (Epps-Singleton, Jensen-Shannon, etc.).
     - CSI_maxCSIValue, CSI_maxCSIValueFeature, CSI_minCSIValue, CSI_minCSIValueFeature.
     - <feature>_CSI, <score_column>_PSI, <feature>_js_distance (flattened metrics).
-    - generic_bar_graph: {"title", "x_axis_label", "y_axis_label", "data": {"data1", "data2"}, "categories"}.
+    - generic_bar_graph: vertical bar (PSI/Drift by feature).
+    - horizontal_bar_graph: horizontal bar (same; better for many features).
+    - generic_scatter_plot: CSI vs JS distance by feature.
     - generic_table: list of {"Metric", "Feature", "Value"} rows.
-    - generic_donut_chart: {"title", "type": "donut", "data": {"data1"}, "categories"}.
+    - generic_donut_chart, generic_pie_chart: part-to-whole (AI status comparator).
+    - firstPredictionDate, lastPredictionDate: comparator date range (ISO) for tracking monitor outputs over time.
+    - baseline_firstDate, baseline_lastDate: baseline date range (ISO); timestamp data associated with baseline/comparator.
 
     Weight variable: The input data must include a numeric column "weight" (default 1.0
     from the preprocess pipeline). Only this column is used as weight; no string or
@@ -179,6 +228,13 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     # 4. Add ModelOp chart/table payloads for UI
     viz = _build_m1_visualizations(result, df_sample)
     result.update(viz)
+    # 5. Associate timestamp range with baseline/comparator for tracking over time (ModelOp firstPredictionDate/lastPredictionDate)
+    baseline_first, baseline_last = _get_date_range(df_baseline)
+    sample_first, sample_last = _get_date_range(df_sample)
+    result['baseline_firstDate'] = baseline_first
+    result['baseline_lastDate'] = baseline_last
+    result['firstPredictionDate'] = sample_first
+    result['lastPredictionDate'] = sample_last
     yield result
 
 

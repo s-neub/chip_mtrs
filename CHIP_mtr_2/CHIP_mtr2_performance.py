@@ -32,25 +32,52 @@ def _to_native(x):
     return x
 
 
+def _get_date_range(df: pd.DataFrame):
+    """Get first and last timestamp from dataframe for firstPredictionDate/lastPredictionDate."""
+    if df is None or df.empty:
+        return None, None
+    date_cols = ['ai_verification_time', 'date_generated', 'first_activity_timestamp', 'last_activity_timestamp', 'hitl_review_time']
+    for col in date_cols:
+        if col not in df.columns:
+            continue
+        try:
+            s = pd.to_datetime(df[col], errors='coerce').dropna()
+            if s.empty:
+                continue
+            return s.min().isoformat(), s.max().isoformat()
+        except Exception:
+            continue
+    return None, None
+
+
 def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
-    """Build ModelOp chart/table/donut payloads from performance result and evaluation dataframe."""
+    """Build ModelOp chart/table/donut/pie payloads per Monitor Output Structure."""
     out = {}
-    # --- generic_bar_graph: classification metrics ---
     metric_names = ['Accuracy', 'Precision', 'Recall', 'F1', 'AUC']
     metric_keys = ['accuracy', 'precision', 'recall', 'f1_score', 'auc']
     values = []
     for k in metric_keys:
         v = result.get(k)
         values.append(_to_native(v) if v is not None else 0)
+    # Vertical bar: descriptive series label for UI
     out['generic_bar_graph'] = {
         'title': 'Classification metrics',
         'x_axis_label': 'Metric',
         'y_axis_label': 'Value',
         'rotated': False,
-        'data': {'data1': values},
+        'data': {'Score': values},
         'categories': metric_names
     }
-    # --- generic_table: confusion matrix as rows ---
+    # Horizontal bar: same
+    out['horizontal_bar_graph'] = {
+        'title': 'Classification metrics (horizontal)',
+        'x_axis_label': 'Value',
+        'y_axis_label': 'Metric',
+        'rotated': True,
+        'data': {'Score': values},
+        'categories': metric_names
+    }
+    # generic_table: confusion matrix or key metrics
     cm = result.get('confusion_matrix')
     if cm is None and 'performance' in result and result['performance']:
         cm = result['performance'][0].get('values', {}).get('confusion_matrix')
@@ -63,15 +90,23 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
         out['generic_table'] = rows
     else:
         out['generic_table'] = [{'Metric': k, 'Value': _to_native(v)} for k, v in result.items() if k in metric_keys and v is not None]
-    # --- generic_donut_chart: predicted or actual class distribution in sample ---
+    # Part-to-whole: donut and pie (generic_donut_chart, generic_pie_chart)
     label_col = 'hitl_qa_decision' if 'hitl_qa_decision' in df_eval.columns else 'ai_overall_status'
     if label_col in df_eval.columns:
         vc = df_eval[label_col].astype(str).value_counts()
+        counts = _to_native(vc.tolist())
+        cats = _to_native(vc.index.tolist())
         out['generic_donut_chart'] = {
             'title': f'Class distribution ({label_col})',
             'type': 'donut',
-            'data': {'data1': _to_native(vc.tolist())},
-            'categories': _to_native(vc.index.tolist())
+            'data': {'Count': counts},
+            'categories': cats
+        }
+        out['generic_pie_chart'] = {
+            'title': f'Class distribution ({label_col})',
+            'type': 'pie',
+            'data': {'Count': counts},
+            'categories': cats
         }
     return out
 
@@ -95,9 +130,10 @@ def metrics(dataframe: pd.DataFrame) -> dict:
     - accuracy, precision, recall, f1_score, auc: scalar metrics.
     - confusion_matrix: list of row dicts (predicted vs actual).
     - performance: list of performance result objects (SDK format).
-    - generic_bar_graph: {"title", "x_axis_label", "y_axis_label", "data": {"data1"}, "categories"} (Accuracy, Precision, Recall, F1, AUC).
+    - generic_bar_graph, horizontal_bar_graph: classification metrics (vertical and horizontal).
     - generic_table: confusion matrix as rows or key metrics.
-    - generic_donut_chart: {"title", "type": "donut", "data": {"data1"}, "categories"} (class distribution).
+    - generic_donut_chart, generic_pie_chart: part-to-whole class distribution.
+    - firstPredictionDate, lastPredictionDate: eval data date range (ISO) for tracking monitor outputs over time.
 
     Weight variable: This monitor does not use a weight column for scoring. The pipeline
     still provides a numeric "weight" column (default 1.0) for consistency with stability
@@ -134,6 +170,10 @@ def metrics(dataframe: pd.DataFrame) -> dict:
     result = model_evaluator.evaluate_performance(pre_defined_metrics="classification_metrics")
     viz = _build_m2_visualizations(result, df_eval)
     result.update(viz)
+    # Associate timestamp range for tracking monitor outputs over time (ModelOp firstPredictionDate/lastPredictionDate)
+    first_d, last_d = _get_date_range(df_eval)
+    result['firstPredictionDate'] = first_d
+    result['lastPredictionDate'] = last_d
     yield result
     
 

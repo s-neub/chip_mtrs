@@ -34,8 +34,26 @@ def _to_native(x):
     return x
 
 
+def _get_date_range(df: pd.DataFrame):
+    """Get first and last timestamp from dataframe for monitor output tracking. Prefers ai_verification_time."""
+    if df is None or df.empty:
+        return None, None
+    date_cols = ['ai_verification_time', 'date_generated', 'first_activity_timestamp', 'last_activity_timestamp', 'hitl_review_time']
+    for col in date_cols:
+        if col not in df.columns:
+            continue
+        try:
+            s = pd.to_datetime(df[col], errors='coerce').dropna()
+            if s.empty:
+                continue
+            return s.min().isoformat(), s.max().isoformat()
+        except Exception:
+            continue
+    return None, None
+
+
 def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
-    """Build ModelOp chart/table/donut payloads from stability/drift result and sample (HITL)."""
+    """Build ModelOp chart/table/donut/pie payloads per Monitor Output Structure (HITL)."""
     out = {}
     categories, psi_vals, js_vals = [], [], []
     stab = result.get('stability')
@@ -55,33 +73,61 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
                 psi_vals.append(_to_native(result[k]) if result.get(k) is not None else 0)
                 jv = result.get(feat + '_js_distance')
                 js_vals.append(_to_native(jv) if jv is not None else 0)
-    if categories:
+    n = len(categories)
+    if n:
+        psi_list = psi_vals[:n]
+        js_list = (js_vals + [0] * n)[:n]
         out['generic_bar_graph'] = {
             'title': 'Stability / Drift by feature (HITL)',
             'x_axis_label': 'Feature',
             'y_axis_label': 'Index / Distance',
             'rotated': False,
-            'data': {
-                'data1': psi_vals[:len(categories)],
-                'data2': (js_vals + [0] * len(categories))[:len(categories)]
-            },
+            'data': {'PSI': psi_list, 'JS Distance': js_list},
             'categories': categories
         }
+        out['horizontal_bar_graph'] = {
+            'title': 'Stability / Drift by feature (HITL, horizontal)',
+            'x_axis_label': 'Index / Distance',
+            'y_axis_label': 'Feature',
+            'rotated': True,
+            'data': {'PSI': psi_list, 'JS Distance': js_list},
+            'categories': categories
+        }
+        scatter_pts = [[psi_list[i], js_list[i]] for i in range(n) if psi_list[i] is not None and js_list[i] is not None]
+        if scatter_pts:
+            out['generic_scatter_plot'] = {
+                'title': 'Stability (CSI) vs Drift (JS) by feature (HITL)',
+                'x_axis_label': 'CSI (Stability Index)',
+                'y_axis_label': 'Jensen–Shannon distance',
+                'type': 'scatter',
+                'data': {'Features': scatter_pts}
+            }
     rows = []
     if 'CSI_maxCSIValue' in result:
         rows.append({'Metric': 'Max CSI', 'Feature': result.get('CSI_maxCSIValueFeature', ''), 'Value': _to_native(result['CSI_maxCSIValue'])})
     if 'CSI_minCSIValue' in result:
         rows.append({'Metric': 'Min CSI', 'Feature': result.get('CSI_minCSIValueFeature', ''), 'Value': _to_native(result['CSI_minCSIValue'])})
+    score_psi_key = next((k for k in result if k.endswith('_PSI')), None)
+    if score_psi_key:
+        rows.append({'Metric': 'Score PSI', 'Feature': score_psi_key.replace('_PSI', ''), 'Value': _to_native(result[score_psi_key])})
     if not rows:
         rows.append({'Metric': 'Stability/Drift', 'Feature': '-', 'Value': '-'})
     out['generic_table'] = rows
     if 'hitl_qa_decision' in df_sample.columns:
         vc = df_sample['hitl_qa_decision'].astype(str).value_counts()
+        counts = _to_native(vc.tolist())
+        cats = _to_native(vc.index.tolist())
         out['generic_donut_chart'] = {
-            'title': 'HITL QA decision (sample)',
+            'title': 'HITL QA decision (comparator)',
             'type': 'donut',
-            'data': {'data1': _to_native(vc.tolist())},
-            'categories': _to_native(vc.index.tolist())
+            'data': {'Count': counts},
+            'categories': cats
+        }
+        out['generic_pie_chart'] = {
+            'title': 'HITL QA decision (comparator)',
+            'type': 'pie',
+            'data': {'Count': counts},
+            'categories': cats
         }
     return out
 
@@ -121,9 +167,12 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     - data_drift: list of drift test results.
     - CSI_maxCSIValue, CSI_maxCSIValueFeature, CSI_minCSIValue, CSI_minCSIValueFeature.
     - <feature>_CSI, <score_column>_PSI, <feature>_js_distance.
-    - generic_bar_graph: {"title", "x_axis_label", "y_axis_label", "data": {"data1", "data2"}, "categories"}.
+    - generic_bar_graph, horizontal_bar_graph: PSI/Drift by feature (vertical and horizontal).
+    - generic_scatter_plot: CSI vs JS distance by feature.
     - generic_table: list of {"Metric", "Feature", "Value"} rows.
-    - generic_donut_chart: {"title", "type": "donut", "data": {"data1"}, "categories"} (e.g. hitl_qa_decision).
+    - generic_donut_chart, generic_pie_chart: part-to-whole (HITL QA decision comparator).
+    - firstPredictionDate, lastPredictionDate: comparator date range (ISO) for tracking monitor outputs over time.
+    - baseline_firstDate, baseline_lastDate: baseline date range (ISO); timestamp data associated with baseline/comparator.
 
     Weight variable: Input data must include a numeric column "weight" (default 1.0 from
     preprocess). Only this numeric column is used as weight. You can later add business
@@ -181,6 +230,13 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     # 4. Add ModelOp chart/table payloads for UI
     viz = _build_m3_visualizations(result, df_sample)
     result.update(viz)
+    # 5. Associate timestamp range with baseline/comparator for tracking over time (ModelOp firstPredictionDate/lastPredictionDate)
+    baseline_first, baseline_last = _get_date_range(df_baseline)
+    sample_first, sample_last = _get_date_range(df_sample)
+    result['baseline_firstDate'] = baseline_first
+    result['baseline_lastDate'] = baseline_last
+    result['firstPredictionDate'] = sample_first
+    result['lastPredictionDate'] = sample_last
     yield result
 
 if __name__ == "__main__":

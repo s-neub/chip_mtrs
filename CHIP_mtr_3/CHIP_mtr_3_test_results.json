@@ -29197,7 +29197,7 @@
     "y_axis_label": "Index / Distance",
     "rotated": false,
     "data": {
-      "data1": [
+      "PSI": [
         0.0,
         2.561617,
         0.0,
@@ -29257,7 +29257,7 @@
         0.110846,
         0.110846
       ],
-      "data2": [
+      "JS Distance": [
         0.8326,
         0.7558,
         0.8326,
@@ -29379,6 +29379,436 @@
       "ai_overall_status"
     ]
   },
+  "horizontal_bar_graph": {
+    "title": "Stability / Drift by feature (HITL, horizontal)",
+    "x_axis_label": "Index / Distance",
+    "y_axis_label": "Feature",
+    "rotated": true,
+    "data": {
+      "PSI": [
+        0.0,
+        2.561617,
+        0.0,
+        0.004322,
+        0.006215,
+        0.004322,
+        0.17378,
+        0.17378,
+        0.17378,
+        0.178079,
+        0.17378,
+        0.178079,
+        0.178079,
+        0.178079,
+        0.178079,
+        0.178079,
+        0.178079,
+        0.178725,
+        0.339019,
+        0.173803,
+        0.189624,
+        0.319729,
+        0.263379,
+        0.19162,
+        0.185027,
+        0.178033,
+        0.178079,
+        0.219269,
+        0.256024,
+        0.184428,
+        0.177491,
+        0.197133,
+        0.219269,
+        0.003231,
+        0.003231,
+        0.003231,
+        0.003231,
+        0.002747,
+        0.002747,
+        0.003231,
+        7.5e-05,
+        7.5e-05,
+        0.0,
+        0.0,
+        2.561617,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.561617,
+        2.561617,
+        2.561617,
+        2.561617,
+        2.561617,
+        0.0,
+        0.0,
+        0.110846,
+        0.110846
+      ],
+      "JS Distance": [
+        0.8326,
+        0.7558,
+        0.8326,
+        0.1515,
+        0.1421,
+        0.1515,
+        0.8273,
+        0.8273,
+        0.8273,
+        0.1319,
+        0.8273,
+        0.1319,
+        0.1319,
+        0.1319,
+        0.1319,
+        0.1319,
+        0.1319,
+        0.1377,
+        0.4213,
+        0.8255,
+        0.5786,
+        0.1868,
+        0.1721,
+        0.5967,
+        0.1947,
+        0.1536,
+        0.1319,
+        0.1479,
+        0.1646,
+        0.1349,
+        0.1376,
+        0.1399,
+        0.1479,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.8326,
+        0.0,
+        0.0,
+        0.7558,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.7558,
+        0.7558,
+        0.7558,
+        0.7558,
+        0.7558,
+        0.0,
+        0.0,
+        0.1099,
+        0
+      ]
+    },
+    "categories": [
+      "businessKey",
+      "batchId",
+      "ai_verification_time",
+      "testName",
+      "ai_meets_specification",
+      "document_type",
+      "material_id",
+      "plant_id",
+      "batch_number",
+      "generated_by",
+      "date_generated",
+      "system",
+      "material_id_validation",
+      "plant_id_validation_result",
+      "batch_number_validation_result",
+      "dom_validation_result",
+      "system_validation_result",
+      "row_id",
+      "row_material",
+      "row_batch",
+      "row_inspection_lot",
+      "row_usage_decision_code",
+      "row_user_status",
+      "row_process_order",
+      "row_sled_bbd",
+      "row_coi",
+      "row_ai_status",
+      "row_material_validation_result",
+      "row_usage_desc_code_validation_status",
+      "row_usage_desc_code_lot_validation_status",
+      "row_user_status_validation_result",
+      "row_coi_pm_validation_result",
+      "row_coi_npm_validation_result",
+      "cca_qeId",
+      "cca_submissionStatus",
+      "cca_fillingCountry",
+      "cca_submissionType",
+      "cca_plannedSubmissionDate",
+      "cca_actualSubmissionDate",
+      "cca_submissionId",
+      "em_lotNo",
+      "em_mediaName",
+      "hitl_qa_decision",
+      "hitl_reviewer_id",
+      "hitl_review_time",
+      "feedback_event_count",
+      "first_feedback_at",
+      "last_feedback_at",
+      "feedback_actions",
+      "activity_event_count",
+      "first_activity_timestamp",
+      "last_activity_timestamp",
+      "activity_categories_seen",
+      "activity_field_names_seen",
+      "has_ai_verified",
+      "has_failed",
+      "cm_term",
+      "ai_overall_status"
+    ]
+  },
+  "generic_scatter_plot": {
+    "title": "Stability (CSI) vs Drift (JS) by feature (HITL)",
+    "x_axis_label": "CSI (Stability Index)",
+    "y_axis_label": "Jensen\u2013Shannon distance",
+    "type": "scatter",
+    "data": {
+      "Features": [
+        [
+          0.0,
+          0.8326
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          0.0,
+          0.8326
+        ],
+        [
+          0.004322,
+          0.1515
+        ],
+        [
+          0.006215,
+          0.1421
+        ],
+        [
+          0.004322,
+          0.1515
+        ],
+        [
+          0.17378,
+          0.8273
+        ],
+        [
+          0.17378,
+          0.8273
+        ],
+        [
+          0.17378,
+          0.8273
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.17378,
+          0.8273
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.178725,
+          0.1377
+        ],
+        [
+          0.339019,
+          0.4213
+        ],
+        [
+          0.173803,
+          0.8255
+        ],
+        [
+          0.189624,
+          0.5786
+        ],
+        [
+          0.319729,
+          0.1868
+        ],
+        [
+          0.263379,
+          0.1721
+        ],
+        [
+          0.19162,
+          0.5967
+        ],
+        [
+          0.185027,
+          0.1947
+        ],
+        [
+          0.178033,
+          0.1536
+        ],
+        [
+          0.178079,
+          0.1319
+        ],
+        [
+          0.219269,
+          0.1479
+        ],
+        [
+          0.256024,
+          0.1646
+        ],
+        [
+          0.184428,
+          0.1349
+        ],
+        [
+          0.177491,
+          0.1376
+        ],
+        [
+          0.197133,
+          0.1399
+        ],
+        [
+          0.219269,
+          0.1479
+        ],
+        [
+          0.003231,
+          0.8326
+        ],
+        [
+          0.003231,
+          0.8326
+        ],
+        [
+          0.003231,
+          0.8326
+        ],
+        [
+          0.003231,
+          0.8326
+        ],
+        [
+          0.002747,
+          0.8326
+        ],
+        [
+          0.002747,
+          0.8326
+        ],
+        [
+          0.003231,
+          0.8326
+        ],
+        [
+          7.5e-05,
+          0.8326
+        ],
+        [
+          7.5e-05,
+          0.8326
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.110846,
+          0.1099
+        ],
+        [
+          0.110846,
+          0
+        ]
+      ]
+    }
+  },
   "generic_table": [
     {
       "Metric": "Max CSI",
@@ -29389,18 +29819,39 @@
       "Metric": "Min CSI",
       "Feature": "businessKey_CSI",
       "Value": 0.0
+    },
+    {
+      "Metric": "Score PSI",
+      "Feature": "ai_overall_status",
+      "Value": 0.110846
     }
   ],
   "generic_donut_chart": {
-    "title": "HITL QA decision (sample)",
+    "title": "HITL QA decision (comparator)",
     "type": "donut",
     "data": {
-      "data1": [
+      "Count": [
         232
       ]
     },
     "categories": [
       "1.0"
     ]
-  }
+  },
+  "generic_pie_chart": {
+    "title": "HITL QA decision (comparator)",
+    "type": "pie",
+    "data": {
+      "Count": [
+        232
+      ]
+    },
+    "categories": [
+      "1.0"
+    ]
+  },
+  "baseline_firstDate": "2026-02-27T15:49:03+00:00",
+  "baseline_lastDate": "2026-02-27T16:00:26+00:00",
+  "firstPredictionDate": "2026-02-27T16:48:20+00:00",
+  "lastPredictionDate": "2026-03-04T11:34:43+00:00"
 }

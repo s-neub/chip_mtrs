@@ -35,7 +35,29 @@
     "y_axis_label": "Value",
     "rotated": false,
     "data": {
-      "data1": [
+      "Score": [
+        0.9353,
+        1.0,
+        0.9353,
+        0.9666,
+        null
+      ]
+    },
+    "categories": [
+      "Accuracy",
+      "Precision",
+      "Recall",
+      "F1",
+      "AUC"
+    ]
+  },
+  "horizontal_bar_graph": {
+    "title": "Classification metrics (horizontal)",
+    "x_axis_label": "Value",
+    "y_axis_label": "Metric",
+    "rotated": true,
+    "data": {
+      "Score": [
         0.9353,
         1.0,
         0.9353,
@@ -61,12 +83,26 @@
     "title": "Class distribution (hitl_qa_decision)",
     "type": "donut",
     "data": {
-      "data1": [
+      "Count": [
         232
       ]
     },
     "categories": [
       "1"
     ]
-  }
+  },
+  "generic_pie_chart": {
+    "title": "Class distribution (hitl_qa_decision)",
+    "type": "pie",
+    "data": {
+      "Count": [
+        232
+      ]
+    },
+    "categories": [
+      "1"
+    ]
+  },
+  "firstPredictionDate": "2026-02-27T16:48:20+00:00",
+  "lastPredictionDate": "2026-03-04T11:34:43+00:00"
 }

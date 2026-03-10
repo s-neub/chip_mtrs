@@ -84,6 +84,8 @@ For activity or feedback, if you have multiple files and want to merge them (las
 
 **Designing the weight from business logic:** You can change the value of `weight` per record based on conditions. Example: increase weight when a record is more critical (e.g. remarks/comments indicate something not aligned with company policy, or a flag like `requires_escalation` or `high_risk_batch` is set). Implement by computing `weight` in the preprocess (or an upstream step) before the split: e.g. `weight = 2.0` when the condition is met, else `1.0`. The monitors then receive the dataframe with the desired per-record weights; no quantitative business rules are required during preproduction, but the structure is in place for when you define them.
 
+**Timestamp association and tracking over time:** Baseline and comparator datasets include timestamp columns (e.g. `ai_verification_time`, `hitl_review_time`). Each monitor’s metrics output includes **`firstPredictionDate`** and **`lastPredictionDate`** (ISO format) derived from the comparator/sample data so ModelOp Center can track monitor outputs over time and plot static results from two runs at different times. Monitors M1 and M3 also emit **`baseline_firstDate`** and **`baseline_lastDate`** for the baseline window. Viz data series use descriptive labels (e.g. "PSI", "JS Distance", "Count", "Score") instead of generic placeholders; section titles (e.g. the `title` inside each chart) can be adjusted as needed in the UI.
+
 ## Path to S3 post-UAT
 
 After UAT, data can be moved to S3. To point the pipeline at S3:
