@@ -50,8 +50,15 @@ def _get_date_range(df: pd.DataFrame):
     return None, None
 
 
+# Monitor Output Structure: only these keys are yielded and written to test_results.json
+M2_ALLOWED_KEYS = (
+    'generic_table', 'generic_bar_graph', 'horizontal_bar_graph',
+    'generic_donut_chart', 'generic_pie_chart'
+)
+
+
 def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
-    """Build ModelOp chart/table/donut/pie payloads per Monitor Output Structure."""
+    """Build ModelOp chart/table/donut/pie payloads per Monitor Output Structure (data1/data2)."""
     out = {}
     metric_names = ['Accuracy', 'Precision', 'Recall', 'F1', 'AUC']
     metric_keys = ['accuracy', 'precision', 'recall', 'f1_score', 'auc']
@@ -59,38 +66,45 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
     for k in metric_keys:
         v = result.get(k)
         values.append(_to_native(v) if v is not None else 0)
-    # Vertical bar: descriptive series label for UI
     out['generic_bar_graph'] = {
         'title': 'Classification metrics',
         'x_axis_label': 'Metric',
         'y_axis_label': 'Value',
         'rotated': False,
-        'data': {'Score': values},
+        'data': {'data1': values},
         'categories': metric_names
     }
-    # Horizontal bar: same
     out['horizontal_bar_graph'] = {
         'title': 'Classification metrics (horizontal)',
         'x_axis_label': 'Value',
         'y_axis_label': 'Metric',
         'rotated': True,
-        'data': {'Score': values},
+        'data': {'data1': values},
         'categories': metric_names
     }
-    # generic_table: confusion matrix or key metrics
+    rows = []
     cm = result.get('confusion_matrix')
     if cm is None and 'performance' in result and result['performance']:
         cm = result['performance'][0].get('values', {}).get('confusion_matrix')
     if isinstance(cm, list) and cm:
-        rows = []
         for i, row_dict in enumerate(cm):
-            row = {'Predicted': str(i)}
-            row.update({str(k): _to_native(v) for k, v in row_dict.items()})
-            rows.append(row)
-        out['generic_table'] = rows
-    else:
-        out['generic_table'] = [{'Metric': k, 'Value': _to_native(v)} for k, v in result.items() if k in metric_keys and v is not None]
-    # Part-to-whole: donut and pie (generic_donut_chart, generic_pie_chart)
+            for actual_k, val in row_dict.items():
+                rows.append({'Metric': f'Confusion Pred={i} Actual={actual_k}', 'Value': _to_native(val)})
+    for k in metric_keys:
+        v = result.get(k)
+        if v is not None:
+            rows.append({'Metric': k.replace('_', ' ').title(), 'Value': _to_native(v)})
+    if 'feedback_event_count' in df_eval.columns:
+        total_fb = int(df_eval['feedback_event_count'].fillna(0).sum())
+        rows.append({'Metric': 'Total feedback events', 'Value': total_fb})
+    if 'activity_comment_count' in df_eval.columns:
+        total_act = int(df_eval['activity_comment_count'].fillna(0).sum())
+        rows.append({'Metric': 'Total activity comments', 'Value': total_act})
+    if 'hitl_reviewer_id' in df_eval.columns:
+        vc = df_eval['hitl_reviewer_id'].fillna('Unknown').astype(str).value_counts()
+        for rev, cnt in vc.items():
+            rows.append({'Metric': 'Reviewer volume', 'Value': f'{str(rev)}: {int(cnt)}'})
+    out['generic_table'] = rows
     label_col = 'hitl_qa_decision' if 'hitl_qa_decision' in df_eval.columns else 'ai_overall_status'
     if label_col in df_eval.columns:
         vc = df_eval[label_col].astype(str).value_counts()
@@ -99,26 +113,15 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
         out['generic_donut_chart'] = {
             'title': f'Class distribution ({label_col})',
             'type': 'donut',
-            'data': {'Count': counts},
+            'data': {'data1': counts},
             'categories': cats
         }
         out['generic_pie_chart'] = {
             'title': f'Class distribution ({label_col})',
             'type': 'pie',
-            'data': {'Count': counts},
+            'data': {'data1': counts},
             'categories': cats
         }
-    # Enrich with reviewer volume and activity/feedback when present (from preprocess)
-    if 'hitl_reviewer_id' in df_eval.columns:
-        vc = df_eval['hitl_reviewer_id'].fillna('Unknown').astype(str).value_counts()
-        out['reviewer_volume'] = _to_native([{'reviewer': str(k), 'volume': int(v)} for k, v in vc.items()])
-    summary = {}
-    if 'feedback_event_count' in df_eval.columns:
-        summary['total_feedback_events'] = int(df_eval['feedback_event_count'].fillna(0).sum())
-    if 'activity_comment_count' in df_eval.columns:
-        summary['total_activity_comments'] = int(df_eval['activity_comment_count'].fillna(0).sum())
-    if summary:
-        out['activity_feedback_summary'] = _to_native(summary)
     return out
 
 
@@ -134,17 +137,9 @@ def init(job_json: dict) -> None:
 # modelop.metrics
 def metrics(dataframe: pd.DataFrame) -> dict:
     """
-    Computes binary classification metrics given the merged pipeline dataset.
-
-    Output payload structure (all keys below are emitted so the ModelOp UI can display
-    every element; new users can see what monitor outputs are available):
-    - accuracy, precision, recall, f1_score, auc: scalar metrics.
-    - confusion_matrix: list of row dicts (predicted vs actual).
-    - performance: list of performance result objects (SDK format).
-    - generic_bar_graph, horizontal_bar_graph: classification metrics (vertical and horizontal).
-    - generic_table: confusion matrix as rows or key metrics.
-    - generic_donut_chart, generic_pie_chart: part-to-whole class distribution.
-    - firstPredictionDate, lastPredictionDate: eval data date range (ISO) for tracking monitor outputs over time.
+    Computes binary classification metrics. Yields only Monitor Output Structure keys:
+    generic_table, generic_bar_graph, horizontal_bar_graph, generic_donut_chart,
+    generic_pie_chart. Scalars and dates are included as generic_table rows.
 
     Weight variable: This monitor does not use a weight column for scoring. The pipeline
     still provides a numeric "weight" column (default 1.0) for consistency with stability
@@ -177,15 +172,16 @@ def metrics(dataframe: pd.DataFrame) -> dict:
         job_json=JOB
     )
 
-    # Compute classification metrics, add visualizations, then yield
     result = model_evaluator.evaluate_performance(pre_defined_metrics="classification_metrics")
     viz = _build_m2_visualizations(result, df_eval)
-    result.update(viz)
-    # Associate timestamp range for tracking monitor outputs over time (ModelOp firstPredictionDate/lastPredictionDate)
     first_d, last_d = _get_date_range(df_eval)
-    result['firstPredictionDate'] = first_d
-    result['lastPredictionDate'] = last_d
-    yield result
+    if viz.get('generic_table') is not None:
+        if first_d is not None:
+            viz['generic_table'].append({'Metric': 'First prediction date', 'Value': first_d})
+        if last_d is not None:
+            viz['generic_table'].append({'Metric': 'Last prediction date', 'Value': last_d})
+    output = {k: viz[k] for k in M2_ALLOWED_KEYS if k in viz}
+    yield output
     
 
 if __name__ == "__main__":

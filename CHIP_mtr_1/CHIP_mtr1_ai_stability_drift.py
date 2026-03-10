@@ -52,6 +52,15 @@ def _get_date_range(df: pd.DataFrame):
     return None, None
 
 
+# Monitor Output Structure: only these keys are yielded and written to test_results.json
+M1_ALLOWED_KEYS = (
+    'generic_table', 'generic_bar_graph', 'horizontal_bar_graph',
+    'generic_scatter_plot', 'generic_donut_chart', 'generic_pie_chart'
+)
+# Limit bar/scatter to top N features for aggregate summary
+M1_TOP_N_FEATURES = 20
+
+
 def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
     """Build ModelOp chart/table payloads per Monitor Output Structure (bar, horizontal bar, table, scatter, donut, pie)."""
     out = {}
@@ -73,29 +82,29 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
                 psi_vals.append(_to_native(result[k]) if result.get(k) is not None else 0)
                 jv = result.get(feat + '_js_distance')
                 js_vals.append(_to_native(jv) if jv is not None else 0)
-    n = len(categories)
+    # Limit to top N for aggregate summary
+    n_full = len(categories)
+    n = min(n_full, M1_TOP_N_FEATURES) if n_full else 0
     if n:
+        categories = categories[:n]
         psi_list = psi_vals[:n]
         js_list = (js_vals + [0] * n)[:n]
-        # Vertical bar: descriptive series labels (PSI, JS Distance) for UI
         out['generic_bar_graph'] = {
             'title': 'PSI / Drift by feature',
             'x_axis_label': 'Feature',
             'y_axis_label': 'Index / Distance',
             'rotated': False,
-            'data': {'PSI': psi_list, 'JS Distance': js_list},
+            'data': {'data1': psi_list, 'data2': js_list},
             'categories': categories
         }
-        # Horizontal bar: same series labels
         out['horizontal_bar_graph'] = {
             'title': 'PSI / Drift by feature (horizontal)',
             'x_axis_label': 'Index / Distance',
             'y_axis_label': 'Feature',
             'rotated': True,
-            'data': {'PSI': psi_list, 'JS Distance': js_list},
+            'data': {'data1': psi_list, 'data2': js_list},
             'categories': categories
         }
-        # Scatter: CSI vs JS by feature
         scatter_pts = [[psi_list[i], js_list[i]] for i in range(n) if psi_list[i] is not None and js_list[i] is not None]
         if scatter_pts:
             out['generic_scatter_plot'] = {
@@ -103,9 +112,8 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
                 'x_axis_label': 'CSI (Stability Index)',
                 'y_axis_label': 'Jensen–Shannon distance',
                 'type': 'scatter',
-                'data': {'Features': scatter_pts}
+                'data': {'data1': scatter_pts}
             }
-    # --- generic_table: key metrics (consistent keys for UI) ---
     rows = []
     if 'CSI_maxCSIValue' in result:
         rows.append({'Metric': 'Max CSI', 'Feature': result.get('CSI_maxCSIValueFeature', ''), 'Value': _to_native(result['CSI_maxCSIValue'])})
@@ -121,9 +129,7 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         total_fb = int(pd.to_numeric(df_sample['feedback_text_count'], errors='coerce').fillna(0).sum())
         rows.append({'Metric': 'Comparator activity comment count (total)', 'Feature': 'Activity/Feedback', 'Value': total_act})
         rows.append({'Metric': 'Comparator feedback text count (total)', 'Feature': 'Activity/Feedback', 'Value': total_fb})
-        out['activity_feedback_summary'] = _to_native({'comparator_activity_comment_count_total': total_act, 'comparator_feedback_text_count_total': total_fb})
     out['generic_table'] = rows
-    # --- Part-to-whole: donut and pie (ModelOp generic_donut_chart, generic_pie_chart) ---
     if 'ai_overall_status' in df_sample.columns:
         vc = df_sample['ai_overall_status'].astype(str).value_counts()
         counts = _to_native(vc.tolist())
@@ -131,13 +137,13 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         out['generic_donut_chart'] = {
             'title': 'AI overall status (comparator)',
             'type': 'donut',
-            'data': {'Count': counts},
+            'data': {'data1': counts},
             'categories': cats
         }
         out['generic_pie_chart'] = {
             'title': 'AI overall status (comparator)',
             'type': 'pie',
-            'data': {'Count': counts},
+            'data': {'data1': counts},
             'categories': cats
         }
     return out
@@ -167,20 +173,10 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     """
     Computes combined stability and data drift metrics.
 
-    Output payload structure (all keys below are emitted so the ModelOp UI can display
-    every element; new users can see what monitor outputs are available and configure
-    the code behind each as needed):
-    - stability: list of stability analysis results (PSI/CSI per feature).
-    - data_drift: list of drift test results (Epps-Singleton, Jensen-Shannon, etc.).
-    - CSI_maxCSIValue, CSI_maxCSIValueFeature, CSI_minCSIValue, CSI_minCSIValueFeature.
-    - <feature>_CSI, <score_column>_PSI, <feature>_js_distance (flattened metrics).
-    - generic_bar_graph: vertical bar (PSI/Drift by feature).
-    - horizontal_bar_graph: horizontal bar (same; better for many features).
-    - generic_scatter_plot: CSI vs JS distance by feature.
-    - generic_table: list of {"Metric", "Feature", "Value"} rows.
-    - generic_donut_chart, generic_pie_chart: part-to-whole (AI status comparator).
-    - firstPredictionDate, lastPredictionDate: comparator date range (ISO) for tracking monitor outputs over time.
-    - baseline_firstDate, baseline_lastDate: baseline date range (ISO); timestamp data associated with baseline/comparator.
+    Yields only Monitor Output Structure keys for ModelOp UI: generic_table,
+    generic_bar_graph, horizontal_bar_graph, generic_scatter_plot,
+    generic_donut_chart, generic_pie_chart. Date range is included as
+    generic_table rows. Raw stability/CSI/drift keys are not emitted.
 
     Weight variable: The input data must include a numeric column "weight" (default 1.0
     from the preprocess pipeline). Only this column is used as weight; no string or
@@ -231,17 +227,24 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
         ks_drift,
         summary_drift
     )
-    # 4. Add ModelOp chart/table payloads for UI
+    # 4. Add ModelOp chart/table payloads for UI (viz only; no raw stability/CSI keys)
     viz = _build_m1_visualizations(result, df_sample)
-    result.update(viz)
-    # 5. Associate timestamp range with baseline/comparator for tracking over time (ModelOp firstPredictionDate/lastPredictionDate)
     baseline_first, baseline_last = _get_date_range(df_baseline)
     sample_first, sample_last = _get_date_range(df_sample)
-    result['baseline_firstDate'] = baseline_first
-    result['baseline_lastDate'] = baseline_last
-    result['firstPredictionDate'] = sample_first
-    result['lastPredictionDate'] = sample_last
-    yield result
+    # Add date range to generic_table for tracking (aggregate summary only)
+    if viz.get('generic_table') is not None:
+        viz['generic_table'] = list(viz['generic_table'])
+        if sample_first is not None:
+            viz['generic_table'].append({'Metric': 'First prediction date', 'Feature': 'Comparator', 'Value': sample_first})
+        if sample_last is not None:
+            viz['generic_table'].append({'Metric': 'Last prediction date', 'Feature': 'Comparator', 'Value': sample_last})
+        if baseline_first is not None:
+            viz['generic_table'].append({'Metric': 'Baseline first date', 'Feature': 'Baseline', 'Value': baseline_first})
+        if baseline_last is not None:
+            viz['generic_table'].append({'Metric': 'Baseline last date', 'Feature': 'Baseline', 'Value': baseline_last})
+    # 5. Yield only Monitor Output Structure keys (no stability, CSI_*, etc.)
+    output = {k: viz[k] for k in M1_ALLOWED_KEYS if k in viz}
+    yield output
 
 
 if __name__ == "__main__":

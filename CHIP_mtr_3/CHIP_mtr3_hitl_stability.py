@@ -203,11 +203,19 @@ def _build_comment_samples(df_sample: pd.DataFrame, max_rows: int = 100):
     return rows
 
 
+# Monitor Output Structure: only these keys are yielded and written to test_results.json
+M3_ALLOWED_KEYS = (
+    'generic_table', 'generic_bar_graph', 'horizontal_bar_graph',
+    'generic_scatter_plot', 'generic_donut_chart', 'generic_pie_chart',
+    'time_line_graph'
+)
+M3_TOP_N_FEATURES = 20
+
+
 def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
-    """Build ModelOp chart/table/donut/pie payloads per Monitor Output Structure (HITL)."""
+    """Build ModelOp chart/table payloads per Monitor Output Structure (HITL); data1/data2; reviewer/QA in generic_table only."""
     out = {}
     reviewer_stats = _compute_reviewer_stats(df_sample)
-    reviewer_time_series = _compute_reviewer_time_series(df_sample)
     time_series = _compute_time_series(df_sample)
     comment_samples = _build_comment_samples(df_sample)
     categories, psi_vals, js_vals = [], [], []
@@ -228,8 +236,10 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
                 psi_vals.append(_to_native(result[k]) if result.get(k) is not None else 0)
                 jv = result.get(feat + '_js_distance')
                 js_vals.append(_to_native(jv) if jv is not None else 0)
-    n = len(categories)
+    n_full = len(categories)
+    n = min(n_full, M3_TOP_N_FEATURES) if n_full else 0
     if n:
+        categories = categories[:n]
         psi_list = psi_vals[:n]
         js_list = (js_vals + [0] * n)[:n]
         out['generic_bar_graph'] = {
@@ -237,7 +247,7 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
             'x_axis_label': 'Feature',
             'y_axis_label': 'Index / Distance',
             'rotated': False,
-            'data': {'PSI': psi_list, 'JS Distance': js_list},
+            'data': {'data1': psi_list, 'data2': js_list},
             'categories': categories
         }
         out['horizontal_bar_graph'] = {
@@ -245,7 +255,7 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
             'x_axis_label': 'Index / Distance',
             'y_axis_label': 'Feature',
             'rotated': True,
-            'data': {'PSI': psi_list, 'JS Distance': js_list},
+            'data': {'data1': psi_list, 'data2': js_list},
             'categories': categories
         }
         scatter_pts = [[psi_list[i], js_list[i]] for i in range(n) if psi_list[i] is not None and js_list[i] is not None]
@@ -255,7 +265,7 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
                 'x_axis_label': 'CSI (Stability Index)',
                 'y_axis_label': 'Jensen–Shannon distance',
                 'type': 'scatter',
-                'data': {'Features': scatter_pts}
+                'data': {'data1': scatter_pts}
             }
     rows = []
     if 'CSI_maxCSIValue' in result:
@@ -273,21 +283,23 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
             team_avg = float(df_sample['hitl_qa_decision'].mean())
         else:
             team_avg = (sum(r['Rejection Rate'] * r['Volume'] for r in reviewer_stats) / total_vol) if total_vol else None
-        reviewer_table = [{'Reviewer': 'Team', 'Volume': int(total_vol), 'Rejection Rate': _to_native(round(team_avg, 4)) if team_avg is not None else None, 'vs Team': 0}]
-        reviewer_table.extend(reviewer_stats)
-        out['reviewer_stats_table'] = _to_native(reviewer_table)
         if team_avg is not None:
             rows.append({'Metric': 'Team Avg Rejection Rate', 'Feature': 'Reviewer Analysis', 'Value': _to_native(round(team_avg, 4))})
         for r in reviewer_stats:
             rows.append({'Metric': f"Reviewer {r['Reviewer']} Rejection Rate", 'Feature': 'Reviewer Analysis', 'Value': r['Rejection Rate']})
             rows.append({'Metric': f"Reviewer {r['Reviewer']} vs Team", 'Feature': 'Reviewer Analysis', 'Value': r['vs Team']})
-    if reviewer_time_series:
-        out['reviewer_time_series'] = _to_native(reviewer_time_series)
-    if time_series:
-        out['time_line_graph'] = _to_native(time_series)
     if comment_samples:
-        out['qa_feedback_samples'] = comment_samples
+        rows.append({'Metric': 'QA feedback samples count', 'Feature': 'HITL', 'Value': len(comment_samples)})
     out['generic_table'] = rows
+    if time_series:
+        ts = time_series
+        data = ts.get('data', {})
+        out['time_line_graph'] = {
+            'title': ts.get('title', 'HITL rejection rate and volume over time'),
+            'x_axis_label': ts.get('x_axis_label', 'Date'),
+            'y_axis_label': ts.get('y_axis_label', 'Rejection Rate / Volume'),
+            'data': {'data1': data.get('Rejection Rate', []), 'data2': data.get('Volume', [])}
+        }
     if 'hitl_qa_decision' in df_sample.columns:
         vc = df_sample['hitl_qa_decision'].astype(str).value_counts()
         counts = _to_native(vc.tolist())
@@ -295,13 +307,13 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         out['generic_donut_chart'] = {
             'title': 'HITL QA decision (comparator)',
             'type': 'donut',
-            'data': {'Count': counts},
+            'data': {'data1': counts},
             'categories': cats
         }
         out['generic_pie_chart'] = {
             'title': 'HITL QA decision (comparator)',
             'type': 'pie',
-            'data': {'Count': counts},
+            'data': {'data1': counts},
             'categories': cats
         }
     return out
@@ -334,20 +346,10 @@ def init(job_json: dict) -> None:
 # modelop.metrics
 def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     """
-    Computes combined stability and data drift metrics for Human inputs.
-
-    Output payload structure (all keys are emitted so the ModelOp UI can display
-    every element; new users can see what monitor outputs are available):
-    - stability: list of stability analysis results (PSI/CSI per feature).
-    - data_drift: list of drift test results.
-    - CSI_maxCSIValue, CSI_maxCSIValueFeature, CSI_minCSIValue, CSI_minCSIValueFeature.
-    - <feature>_CSI, <score_column>_PSI, <feature>_js_distance.
-    - generic_bar_graph, horizontal_bar_graph: PSI/Drift by feature (vertical and horizontal).
-    - generic_scatter_plot: CSI vs JS distance by feature.
-    - generic_table: list of {"Metric", "Feature", "Value"} rows.
-    - generic_donut_chart, generic_pie_chart: part-to-whole (HITL QA decision comparator).
-    - firstPredictionDate, lastPredictionDate: comparator date range (ISO) for tracking monitor outputs over time.
-    - baseline_firstDate, baseline_lastDate: baseline date range (ISO); timestamp data associated with baseline/comparator.
+    Computes stability and drift for HITL. Yields only Monitor Output Structure keys:
+    generic_table, generic_bar_graph, horizontal_bar_graph, generic_scatter_plot,
+    generic_donut_chart, generic_pie_chart, time_line_graph. Reviewer/QA summary and
+    dates are in generic_table rows.
 
     Weight variable: Input data must include a numeric column "weight" (default 1.0 from
     preprocess). Only this numeric column is used as weight. You can later add business
@@ -402,17 +404,20 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
         ks_drift,
         summary_drift
     )
-    # 4. Add ModelOp chart/table payloads for UI
     viz = _build_m3_visualizations(result, df_sample)
-    result.update(viz)
-    # 5. Associate timestamp range with baseline/comparator for tracking over time (ModelOp firstPredictionDate/lastPredictionDate)
     baseline_first, baseline_last = _get_date_range(df_baseline)
     sample_first, sample_last = _get_date_range(df_sample)
-    result['baseline_firstDate'] = baseline_first
-    result['baseline_lastDate'] = baseline_last
-    result['firstPredictionDate'] = sample_first
-    result['lastPredictionDate'] = sample_last
-    yield result
+    if viz.get('generic_table') is not None:
+        if sample_first is not None:
+            viz['generic_table'].append({'Metric': 'First prediction date', 'Feature': 'Comparator', 'Value': sample_first})
+        if sample_last is not None:
+            viz['generic_table'].append({'Metric': 'Last prediction date', 'Feature': 'Comparator', 'Value': sample_last})
+        if baseline_first is not None:
+            viz['generic_table'].append({'Metric': 'Baseline first date', 'Feature': 'Baseline', 'Value': baseline_first})
+        if baseline_last is not None:
+            viz['generic_table'].append({'Metric': 'Baseline last date', 'Feature': 'Baseline', 'Value': baseline_last})
+    output = {k: viz[k] for k in M3_ALLOWED_KEYS if k in viz}
+    yield output
 
 if __name__ == "__main__":
     # Local Testing Execution Block (Slide 38 ModelOp Developer Training)

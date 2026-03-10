@@ -1,32 +1,48 @@
 {
-  "accuracy": 0.9353,
-  "precision": 1.0,
-  "recall": 0.9353,
-  "auc": null,
-  "f1_score": 0.9666,
-  "confusion_matrix": [
+  "generic_table": [
     {
-      "1": 1.0
-    }
-  ],
-  "performance": [
+      "Metric": "Confusion Pred=0 Actual=1",
+      "Value": 1.0
+    },
     {
-      "test_name": "Classification Metrics",
-      "test_category": "performance",
-      "test_type": "classification_metrics",
-      "test_id": "performance_classification_metrics",
-      "values": {
-        "accuracy": 0.9353,
-        "precision": 1.0,
-        "recall": 0.9353,
-        "f1_score": 0.9666,
-        "auc": null,
-        "confusion_matrix": [
-          {
-            "1": 1.0
-          }
-        ]
-      }
+      "Metric": "Accuracy",
+      "Value": 0.9353
+    },
+    {
+      "Metric": "Precision",
+      "Value": 1.0
+    },
+    {
+      "Metric": "Recall",
+      "Value": 0.9353
+    },
+    {
+      "Metric": "F1 Score",
+      "Value": 0.9666
+    },
+    {
+      "Metric": "Auc",
+      "Value": null
+    },
+    {
+      "Metric": "Total feedback events",
+      "Value": 0
+    },
+    {
+      "Metric": "Total activity comments",
+      "Value": 3669
+    },
+    {
+      "Metric": "Reviewer volume",
+      "Value": "USER-251.0: 232"
+    },
+    {
+      "Metric": "First prediction date",
+      "Value": "2026-02-27T16:48:20+00:00"
+    },
+    {
+      "Metric": "Last prediction date",
+      "Value": "2026-03-04T11:34:43+00:00"
     }
   ],
   "generic_bar_graph": {
@@ -35,7 +51,7 @@
     "y_axis_label": "Value",
     "rotated": false,
     "data": {
-      "Score": [
+      "data1": [
         0.9353,
         1.0,
         0.9353,
@@ -57,7 +73,7 @@
     "y_axis_label": "Metric",
     "rotated": true,
     "data": {
-      "Score": [
+      "data1": [
         0.9353,
         1.0,
         0.9353,
@@ -73,17 +89,11 @@
       "AUC"
     ]
   },
-  "generic_table": [
-    {
-      "Predicted": "0",
-      "1": 1.0
-    }
-  ],
   "generic_donut_chart": {
     "title": "Class distribution (hitl_qa_decision)",
     "type": "donut",
     "data": {
-      "Count": [
+      "data1": [
         232
       ]
     },
@@ -95,24 +105,12 @@
     "title": "Class distribution (hitl_qa_decision)",
     "type": "pie",
     "data": {
-      "Count": [
+      "data1": [
         232
       ]
     },
     "categories": [
       "1"
     ]
-  },
-  "reviewer_volume": [
-    {
-      "reviewer": "USER-251.0",
-      "volume": 232
-    }
-  ],
-  "activity_feedback_summary": {
-    "total_feedback_events": 0,
-    "total_activity_comments": 3669
-  },
-  "firstPredictionDate": "2026-02-27T16:48:20+00:00",
-  "lastPredictionDate": "2026-03-04T11:34:43+00:00"
+  }
 }
