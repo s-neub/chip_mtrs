@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="Definitions_CHIP_M2" name="CHIP M2 Performance" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="Decision_CHIP_M2" name="CHIP_M2_Performance">
+    <decisionTable id="DecisionTable_M2" hitPolicy="COLLECT">
+      <input id="Input_auc" label="auc" camunda:inputVariable="auc">
+        <inputExpression id="InputExpr_auc" typeRef="double" expressionLanguage="feel"><text></text></inputExpression>
+      </input>
+      <input id="Input_precision" label="precision" camunda:inputVariable="precision">
+        <inputExpression id="InputExpr_precision" typeRef="double" expressionLanguage="feel"><text></text></inputExpression>
+      </input>
+      <input id="Input_recall" label="recall" camunda:inputVariable="recall">
+        <inputExpression id="InputExpr_recall" typeRef="double"><text></text></inputExpression>
+      </input>
+      <input id="Input_f1" label="f1_score" camunda:inputVariable="f1_score">
+        <inputExpression id="InputExpr_f1" typeRef="double"><text></text></inputExpression>
+      </input>
+      <output id="Output_Passes" label="passes" name="passes" typeRef="boolean" />
+      <output id="Output_Reason" label="reason" name="reason" typeRef="string" />
+      <output id="Output_Category" label="category" name="category" typeRef="string" />
+      <output id="Output_Action" label="action" name="action" typeRef="string" />
+      <rule id="Rule_auc">
+        <inputEntry id="UE_auc"><text>&lt;= 0.7</text></inputEntry>
+        <inputEntry id="UE_prec_1"><text></text></inputEntry>
+        <inputEntry id="UE_rec_1"><text></text></inputEntry>
+        <inputEntry id="UE_f1_1"><text></text></inputEntry>
+        <outputEntry id="OE_auc"><text>false</text></outputEntry>
+        <outputEntry id="OE_r_auc"><text>"auc is under threshold of 0.7"</text></outputEntry>
+        <outputEntry id="OE_c_auc"><text>"Performance"</text></outputEntry>
+        <outputEntry id="OE_a_auc"><text>"error"</text></outputEntry>
+      </rule>
+      <rule id="Rule_precision">
+        <inputEntry id="UE_auc_2"><text></text></inputEntry>
+        <inputEntry id="UE_prec"><text>&lt;= 0.6</text></inputEntry>
+        <inputEntry id="UE_rec_2"><text></text></inputEntry>
+        <inputEntry id="UE_f1_2"><text></text></inputEntry>
+        <outputEntry id="OE_prec"><text>false</text></outputEntry>
+        <outputEntry id="OE_r_prec"><text>"precision under threshold of 0.6"</text></outputEntry>
+        <outputEntry id="OE_c_prec"><text>"Performance"</text></outputEntry>
+        <outputEntry id="OE_a_prec"><text>"error"</text></outputEntry>
+      </rule>
+      <rule id="Rule_recall">
+        <inputEntry id="UE_auc_3"><text></text></inputEntry>
+        <inputEntry id="UE_prec_3"><text></text></inputEntry>
+        <inputEntry id="UE_rec"><text>&lt;= 0.6</text></inputEntry>
+        <inputEntry id="UE_f1_3"><text></text></inputEntry>
+        <outputEntry id="OE_rec"><text>false</text></outputEntry>
+        <outputEntry id="OE_r_rec"><text>"recall under threshold of 0.6"</text></outputEntry>
+        <outputEntry id="OE_c_rec"><text>"Performance"</text></outputEntry>
+        <outputEntry id="OE_a_rec"><text>"error"</text></outputEntry>
+      </rule>
+      <rule id="Rule_f1">
+        <inputEntry id="UE_auc_4"><text></text></inputEntry>
+        <inputEntry id="UE_prec_4"><text></text></inputEntry>
+        <inputEntry id="UE_rec_4"><text></text></inputEntry>
+        <inputEntry id="UE_f1"><text>&lt;= 0.7</text></inputEntry>
+        <outputEntry id="OE_f1"><text>false</text></outputEntry>
+        <outputEntry id="OE_r_f1"><text>"f1_score under threshold of 0.7"</text></outputEntry>
+        <outputEntry id="OE_c_f1"><text>"Performance"</text></outputEntry>
+        <outputEntry id="OE_a_f1"><text>"error"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="Decision_CHIP_M2">
+        <dc:Bounds height="80" width="200" x="150" y="150" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

@@ -8,6 +8,7 @@ schema asset (e.g., blank CSV) attached in the ModelOp UI.
 Includes automatic binary mapping for strict OOTB classification compatibility.
 """
 
+import os
 import pandas as pd
 import json
 import sys
@@ -18,6 +19,62 @@ import modelop.utils as utils
 logger = utils.configure_logger()
 
 JOB = {}
+
+
+def _to_native(x):
+    """Convert numpy types to native Python for JSON-safe chart/table payloads."""
+    if hasattr(x, 'item'):
+        return x.item()
+    if isinstance(x, (list, tuple)):
+        return [_to_native(v) for v in x]
+    if isinstance(x, dict):
+        return {k: _to_native(v) for k, v in x.items()}
+    return x
+
+
+def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
+    """Build ModelOp chart/table/donut payloads from performance result and evaluation dataframe."""
+    out = {}
+    # --- generic_bar_graph: classification metrics ---
+    metric_names = ['Accuracy', 'Precision', 'Recall', 'F1', 'AUC']
+    metric_keys = ['accuracy', 'precision', 'recall', 'f1_score', 'auc']
+    values = []
+    for k in metric_keys:
+        v = result.get(k)
+        values.append(_to_native(v) if v is not None else 0)
+    out['generic_bar_graph'] = {
+        'title': 'Classification metrics',
+        'x_axis_label': 'Metric',
+        'y_axis_label': 'Value',
+        'rotated': False,
+        'data': {'data1': values},
+        'categories': metric_names
+    }
+    # --- generic_table: confusion matrix as rows ---
+    cm = result.get('confusion_matrix')
+    if cm is None and 'performance' in result and result['performance']:
+        cm = result['performance'][0].get('values', {}).get('confusion_matrix')
+    if isinstance(cm, list) and cm:
+        rows = []
+        for i, row_dict in enumerate(cm):
+            row = {'Predicted': str(i)}
+            row.update({str(k): _to_native(v) for k, v in row_dict.items()})
+            rows.append(row)
+        out['generic_table'] = rows
+    else:
+        out['generic_table'] = [{'Metric': k, 'Value': _to_native(v)} for k, v in result.items() if k in metric_keys and v is not None]
+    # --- generic_donut_chart: predicted or actual class distribution in sample ---
+    label_col = 'hitl_qa_decision' if 'hitl_qa_decision' in df_eval.columns else 'ai_overall_status'
+    if label_col in df_eval.columns:
+        vc = df_eval[label_col].astype(str).value_counts()
+        out['generic_donut_chart'] = {
+            'title': f'Class distribution ({label_col})',
+            'type': 'donut',
+            'data': {'data1': _to_native(vc.tolist())},
+            'categories': _to_native(vc.index.tolist())
+        }
+    return out
+
 
 # modelop.init
 def init(job_json: dict) -> None:
@@ -32,6 +89,22 @@ def init(job_json: dict) -> None:
 def metrics(dataframe: pd.DataFrame) -> dict:
     """
     Computes binary classification metrics given the merged pipeline dataset.
+
+    Output payload structure (all keys below are emitted so the ModelOp UI can display
+    every element; new users can see what monitor outputs are available):
+    - accuracy, precision, recall, f1_score, auc: scalar metrics.
+    - confusion_matrix: list of row dicts (predicted vs actual).
+    - performance: list of performance result objects (SDK format).
+    - generic_bar_graph: {"title", "x_axis_label", "y_axis_label", "data": {"data1"}, "categories"} (Accuracy, Precision, Recall, F1, AUC).
+    - generic_table: confusion matrix as rows or key metrics.
+    - generic_donut_chart: {"title", "type": "donut", "data": {"data1"}, "categories"} (class distribution).
+
+    Weight variable: This monitor does not use a weight column for scoring. The pipeline
+    still provides a numeric "weight" column (default 1.0) for consistency with stability
+    monitors (M1, M3). If you later add weighted performance (e.g. weight by record
+    importance), use the same pattern: set weight in preprocess from business logic
+    (e.g. increase when remarks indicate policy misalignment or a flag requires_escalation),
+    then pass that column into the evaluator if/when the SDK supports it.
     """
     df_eval = dataframe.copy()
     
@@ -57,10 +130,11 @@ def metrics(dataframe: pd.DataFrame) -> dict:
         job_json=JOB
     )
 
-    # Compute and yield classification metrics payload
-    yield model_evaluator.evaluate_performance(
-        pre_defined_metrics="classification_metrics"
-    )
+    # Compute classification metrics, add visualizations, then yield
+    result = model_evaluator.evaluate_performance(pre_defined_metrics="classification_metrics")
+    viz = _build_m2_visualizations(result, df_eval)
+    result.update(viz)
+    yield result
     
 
 if __name__ == "__main__":
@@ -70,18 +144,52 @@ if __name__ == "__main__":
     print("Testing Monitor 2 locally...")
     
     # 1. Load the mock job JSON to simulate the platform environment
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        with open('modelop_schema.json', 'r') as f:
-            mock_schema = json.load(f)
+        with open(os.path.join(script_dir, 'modelop_schema.json'), 'r') as f:
+            schema_from_file = json.load(f)
     except FileNotFoundError:
         print("[!] modelop_schema.json not found. Run mtr_preprocess.py first.")
         sys.exit(1)
-        
+
+    # Convert preprocess schema (inputSchema.items.properties) to ModelOp infer format (fields array)
+    # M2 needs exactly one score (AI prediction) and one label (ground truth): ai_overall_status=score, hitl_qa_decision=label
+    props = schema_from_file.get("inputSchema", {}).get("items", {}).get("properties", {})
+    fields = []
+    for name, p in props.items():
+        if name == "ai_overall_status":
+            role = "score"
+        elif name == "hitl_qa_decision":
+            role = "label"
+        else:
+            role = p.get("role", "predictor")
+            if role == "score":
+                role = "predictor"
+            if role == "non-predictor":
+                role = "non_predictor"
+        data_class = p.get("dataClass", "categorical")
+        if data_class not in ("numerical", "categorical"):
+            data_class = "categorical"
+        fields.append({
+            "name": name,
+            "role": role,
+            "dataClass": data_class,
+            "driftCandidate": role in ("predictor", "non_predictor"),
+            "specialValues": [],
+            "protectedClass": False,
+            "scoringOptional": False,
+            "type": "string" if p.get("type") not in ("int", "float", "double", "long", "string", "boolean", "null") else p.get("type", "string")
+        })
+    mock_schema_def = {"fields": fields}
+
+    # ModelOp expects modelMetaData.inputSchema = [ { "schemaDefinition": <schema> } ]
     mock_job = {
         "rawJson": json.dumps({
             "referenceModel": {
                 "storedModel": {
-                    "modelMetaData": mock_schema
+                    "modelMetaData": {
+                        "inputSchema": [{"schemaDefinition": mock_schema_def}]
+                    }
                 }
             }
         })
@@ -90,15 +198,50 @@ if __name__ == "__main__":
     # 2. Call init()
     init(mock_job)
     
-    # 3. Load test data (Performance monitors only need the comparator/sample data)
+    # 3. Load test data (full columns so schema columns exist; platform may pre-filter when invoking metrics())
     try:
-        df_c = pd.read_json('mtr_2_comparator.json', orient='records')
+        df_c = pd.read_json(os.path.join(script_dir, 'CHIP_mtr_2_comparator.json'), orient='records')
+        if df_c.empty:
+            print("[!] Comparator is empty. Run preprocess with data that yields comparator records.")
+            sys.exit(1)
     except Exception as e:
          print(f"[!] Error loading test data: {e}")
          sys.exit(1)
          
-    # 4. Call metrics()
-    results = list(metrics(df_c))
-    
-    print("\n[SUCCESS] Yielded Metrics Payload:")
-    print(json.dumps(results[0], indent=2))
+    # 4. Call metrics() and 5. Always write metrics payload to JSON (even on error, so a file is produced every run)
+    out_path = os.path.join(script_dir, 'CHIP_mtr_2_test_results.json')
+
+    def _json_serial(obj):
+        if hasattr(obj, 'item'):
+            v = obj.item()
+            if isinstance(v, float) and (v != v or v == float('inf') or v == float('-inf')):
+                return None
+            return v
+        if isinstance(obj, float) and (obj != obj or obj == float('inf') or obj == float('-inf')):
+            return None
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+    def _nan_to_none(obj):
+        import math
+        if hasattr(obj, 'item'):
+            v = obj.item()
+            return None if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v
+        if isinstance(obj, dict):
+            return {k: _nan_to_none(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_nan_to_none(x) for x in obj]
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+            return None
+        return obj
+
+    try:
+        results = list(metrics(df_c))
+        payload = _nan_to_none(results[0])
+    except Exception as e:
+        payload = {"error": str(e), "metrics_computed": False}
+        print(f"[!] metrics() failed: {e}")
+
+    with open(out_path, 'w') as f:
+        json.dump(payload, f, indent=2, default=_json_serial)
+    print(f"\n[SUCCESS] Output written to {out_path}")
+    print(json.dumps(payload, indent=2, default=_json_serial))

@@ -1,0 +1,72 @@
+{
+  "accuracy": 0.9353,
+  "precision": 1.0,
+  "recall": 0.9353,
+  "auc": null,
+  "f1_score": 0.9666,
+  "confusion_matrix": [
+    {
+      "1": 1.0
+    }
+  ],
+  "performance": [
+    {
+      "test_name": "Classification Metrics",
+      "test_category": "performance",
+      "test_type": "classification_metrics",
+      "test_id": "performance_classification_metrics",
+      "values": {
+        "accuracy": 0.9353,
+        "precision": 1.0,
+        "recall": 0.9353,
+        "f1_score": 0.9666,
+        "auc": null,
+        "confusion_matrix": [
+          {
+            "1": 1.0
+          }
+        ]
+      }
+    }
+  ],
+  "generic_bar_graph": {
+    "title": "Classification metrics",
+    "x_axis_label": "Metric",
+    "y_axis_label": "Value",
+    "rotated": false,
+    "data": {
+      "data1": [
+        0.9353,
+        1.0,
+        0.9353,
+        0.9666,
+        null
+      ]
+    },
+    "categories": [
+      "Accuracy",
+      "Precision",
+      "Recall",
+      "F1",
+      "AUC"
+    ]
+  },
+  "generic_table": [
+    {
+      "Predicted": "0",
+      "1": 1.0
+    }
+  ],
+  "generic_donut_chart": {
+    "title": "Class distribution (hitl_qa_decision)",
+    "type": "donut",
+    "data": {
+      "data1": [
+        232
+      ]
+    },
+    "categories": [
+      "1"
+    ]
+  }
+}

@@ -23,3 +23,18 @@ monitor_2_performance:
     hitl_qa_decision: "Rejected, Reprocess"
 
 # If you leave a certain scenario out (e.g. removing "Pending" from the TN `hitl_qa_decision` list), the script will automatically flag those rows as `EXCLUDE` and completely drop them from the output dataset generated for Monitor 2.
+
+# Optional: baseline-comparator split (see docs/DATA_INGESTION.md). If unset, DATE split uses data-driven cutoff (date-auto).
+# split:
+#   days_threshold: null    # null = data-driven; set to e.g. 30 for "last 30 days = comparator" (with fallback if baseline empty)
+#   min_records_baseline: 20
+#   min_records_comparator: 20
+#   baseline_fraction: null # optional; 0.0-1.0 for percentile-based split (e.g. 0.4 = first 40% of time range = baseline)
+
+# Optional: latest-file selection and configurable paths (see docs/DATA_INGESTION.md)
+# sources:
+#   activity_directory: "."
+#   activity_pattern: "batch_activity_log_*.json"
+#   feedback_directory: "."
+#   feedback_pattern: "ai_feedback_*.json"
+#   ai_responses_dir: "AI Responses"

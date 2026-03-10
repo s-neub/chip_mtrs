@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="Definitions_CHIP_M1" name="CHIP M1 Stability and Drift" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="Decision_CHIP_M1" name="CHIP_M1_Stability_Drift">
+    <decisionTable id="DecisionTable_M1" hitPolicy="FIRST">
+      <input id="Input_Stability" label="Stability" camunda:inputVariable="stability">
+        <inputExpression id="InputExpr_Stability" typeRef="string" expressionLanguage="groovy"><text></text></inputExpression>
+      </input>
+      <input id="Input_Drift" label="Data Drift" camunda:inputVariable="data_drift">
+        <inputExpression id="InputExpr_Drift" typeRef="string" expressionLanguage="groovy"><text></text></inputExpression>
+      </input>
+      <input id="Input_ModelRisk" label="Model Risk" camunda:inputVariable="modelRisk">
+        <inputExpression id="InputExpr_Risk" typeRef="string"><text></text></inputExpression>
+      </input>
+      <output id="Output_Passes" label="Passes" name="passes" typeRef="boolean" />
+      <output id="Output_Reason" label="Reason" name="reason" typeRef="string" />
+      <output id="Output_Category" label="Category" name="category" typeRef="string" />
+      <output id="Output_Action" label="Action" name="action" typeRef="string" />
+      <!-- Stability: index &gt; 0.15 (HIGH) -->
+      <rule id="Rule_Stability_High">
+        <inputEntry id="UE_Stab_H" expressionLanguage="groovy">
+          <text>def result = stability != null &amp;&amp; stability.size() &gt; 0 ? stability[0]?.values : null
+return result != null &amp;&amp; result.any { e -&gt; e.value != null &amp;&amp; e.value.stability_index != null &amp;&amp; e.value.stability_index &gt; 0.15 }</text>
+        </inputEntry>
+        <inputEntry id="UE_Drift_H"><text>-</text></inputEntry>
+        <inputEntry id="UE_Risk_H"><text>"HIGH"</text></inputEntry>
+        <outputEntry id="OE_P_H"><text>false</text></outputEntry>
+        <outputEntry id="OE_R_H"><text>"Stability index is greater than 0.15 for one or more features or model output fields"</text></outputEntry>
+        <outputEntry id="OE_C_H"><text>"Stability"</text></outputEntry>
+        <outputEntry id="OE_A_H"><text>"error"</text></outputEntry>
+      </rule>
+      <!-- Stability: index &gt; 0.2 (MEDIUM) -->
+      <rule id="Rule_Stability_Med">
+        <inputEntry id="UE_Stab_M" expressionLanguage="groovy">
+          <text>def result = stability != null &amp;&amp; stability.size() &gt; 0 ? stability[0]?.values : null
+return result != null &amp;&amp; result.any { e -&gt; e.value != null &amp;&amp; e.value.stability_index != null &amp;&amp; e.value.stability_index &gt; 0.2 }</text>
+        </inputEntry>
+        <inputEntry id="UE_Drift_M"><text>-</text></inputEntry>
+        <inputEntry id="UE_Risk_M"><text>"MEDIUM"</text></inputEntry>
+        <outputEntry id="OE_P_M"><text>false</text></outputEntry>
+        <outputEntry id="OE_R_M"><text>"Stability index is greater than 0.2 for one or more features or model output fields"</text></outputEntry>
+        <outputEntry id="OE_C_M"><text>"Stability"</text></outputEntry>
+        <outputEntry id="OE_A_M"><text>"error"</text></outputEntry>
+      </rule>
+      <!-- Stability: index &gt; 0.25 (LOW) -->
+      <rule id="Rule_Stability_Low">
+        <inputEntry id="UE_Stab_L" expressionLanguage="groovy">
+          <text>def result = stability != null &amp;&amp; stability.size() &gt; 0 ? stability[0]?.values : null
+return result != null &amp;&amp; result.any { e -&gt; e.value != null &amp;&amp; e.value.stability_index != null &amp;&amp; e.value.stability_index &gt; 0.25 }</text>
+        </inputEntry>
+        <inputEntry id="UE_Drift_L"><text>-</text></inputEntry>
+        <inputEntry id="UE_Risk_L"><text>"LOW"</text></inputEntry>
+        <outputEntry id="OE_P_L"><text>false</text></outputEntry>
+        <outputEntry id="OE_R_L"><text>"Stability index is greater than 0.25 for one or more features or model output fields"</text></outputEntry>
+        <outputEntry id="OE_C_L"><text>"Stability"</text></outputEntry>
+        <outputEntry id="OE_A_L"><text>"error"</text></outputEntry>
+      </rule>
+      <!-- Data Drift: KS p-value &lt; 0.05 -->
+      <rule id="Rule_Drift_KS">
+        <inputEntry id="UE_Stab_D"><text>-</text></inputEntry>
+        <inputEntry id="UE_Drift_KS" expressionLanguage="groovy">
+          <text>def ks = data_drift != null ? data_drift.find { it?.test_name == 'Kolmogorov-Smirnov' }?.values : null
+return ks != null &amp;&amp; ks.any { entry -&gt; entry.value != null &amp;&amp; entry.value &lt; 0.05 }</text>
+        </inputEntry>
+        <inputEntry id="UE_Risk_D"><text>-</text></inputEntry>
+        <outputEntry id="OE_P_D"><text>false</text></outputEntry>
+        <outputEntry id="OE_R_D"><text>"Kolmogorov-Smirnov p-value is below 0.05 for one or more features"</text></outputEntry>
+        <outputEntry id="OE_C_D"><text>"Data Drift"</text></outputEntry>
+        <outputEntry id="OE_A_D"><text>"error"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="Decision_CHIP_M1">
+        <dc:Bounds height="80" width="220" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDI>
+  </dmndi:DMNDI>
+</definitions>

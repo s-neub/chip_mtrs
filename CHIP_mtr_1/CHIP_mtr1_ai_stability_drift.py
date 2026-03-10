@@ -8,6 +8,7 @@ Best Practice: Uses infer.validate_schema() to read the
 schema asset (e.g., blank CSV) attached in the ModelOp UI.
 """
 
+import os
 import pandas as pd
 import json
 import modelop.monitors.stability as stability
@@ -20,6 +21,75 @@ logger = utils.configure_logger()
 
 JOB = {}
 GROUP = None
+
+
+def _to_native(x):
+    """Convert numpy types to native Python for JSON-safe chart/table payloads."""
+    if hasattr(x, 'item'):
+        return x.item()
+    if isinstance(x, (list, tuple)):
+        return [_to_native(v) for v in x]
+    if isinstance(x, dict):
+        return {k: _to_native(v) for k, v in x.items()}
+    return x
+
+
+def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
+    """Build ModelOp chart/table payloads from stability/drift result and sample dataframe."""
+    out = {}
+    # --- generic_bar_graph: PSI/CSI and JS drift by feature ---
+    categories, psi_vals, js_vals = [], [], []
+    stab = result.get('stability')
+    if stab and isinstance(stab, list) and len(stab) > 0 and 'values' in stab[0]:
+        vals = stab[0]['values']
+        for fname in vals:
+            v = vals[fname]
+            if isinstance(v, dict) and 'stability_index' in v:
+                categories.append(fname)
+                psi_vals.append(_to_native(v['stability_index']))
+                js_vals.append(_to_native(result.get(fname + '_js_distance')) if result.get(fname + '_js_distance') is not None else 0)
+    if not categories:
+        for k in result:
+            if isinstance(k, str) and k.endswith('_CSI'):
+                feat = k.replace('_CSI', '')
+                categories.append(feat)
+                psi_vals.append(_to_native(result[k]) if result.get(k) is not None else 0)
+                jv = result.get(feat + '_js_distance')
+                js_vals.append(_to_native(jv) if jv is not None else 0)
+    if categories:
+        out['generic_bar_graph'] = {
+            'title': 'PSI / Drift by feature',
+            'x_axis_label': 'Feature',
+            'y_axis_label': 'Index / Distance',
+            'rotated': False,
+            'data': {
+                'data1': psi_vals[:len(categories)],
+                'data2': (js_vals + [0] * len(categories))[:len(categories)]
+            },
+            'categories': categories
+        }
+    # --- generic_table: key metrics ---
+    rows = []
+    if 'CSI_maxCSIValue' in result:
+        rows.append({'Metric': 'Max CSI', 'Feature': result.get('CSI_maxCSIValueFeature', ''), 'Value': _to_native(result['CSI_maxCSIValue'])})
+    if 'CSI_minCSIValue' in result:
+        rows.append({'Metric': 'Min CSI', 'Feature': result.get('CSI_minCSIValueFeature', ''), 'Value': _to_native(result['CSI_minCSIValue'])})
+    score_psi_key = next((k for k in result if k.endswith('_PSI')), None)
+    if score_psi_key:
+        rows.append({'Metric': 'Score PSI', 'Feature': score_psi_key.replace('_PSI', ''), 'Value': _to_native(result[score_psi_key])})
+    if not rows:
+        rows.append({'Metric': 'Stability/Drift', 'Feature': '-', 'Value': '-'})
+    out['generic_table'] = rows
+    # --- generic_donut_chart: ai_overall_status in sample ---
+    if 'ai_overall_status' in df_sample.columns:
+        vc = df_sample['ai_overall_status'].astype(str).value_counts()
+        out['generic_donut_chart'] = {
+            'title': 'AI overall status (sample)',
+            'type': 'donut',
+            'data': {'data1': _to_native(vc.tolist())},
+            'categories': _to_native(vc.index.tolist())
+        }
+    return out
 
 # modelop.init
 def init(job_json: dict) -> None:
@@ -45,14 +115,33 @@ def init(job_json: dict) -> None:
 def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     """
     Computes combined stability and data drift metrics.
+
+    Output payload structure (all keys below are emitted so the ModelOp UI can display
+    every element; new users can see what monitor outputs are available and configure
+    the code behind each as needed):
+    - stability: list of stability analysis results (PSI/CSI per feature).
+    - data_drift: list of drift test results (Epps-Singleton, Jensen-Shannon, etc.).
+    - CSI_maxCSIValue, CSI_maxCSIValueFeature, CSI_minCSIValue, CSI_minCSIValueFeature.
+    - <feature>_CSI, <score_column>_PSI, <feature>_js_distance (flattened metrics).
+    - generic_bar_graph: {"title", "x_axis_label", "y_axis_label", "data": {"data1", "data2"}, "categories"}.
+    - generic_table: list of {"Metric", "Feature", "Value"} rows.
+    - generic_donut_chart: {"title", "type": "donut", "data": {"data1"}, "categories"}.
+
+    Weight variable: The input data must include a numeric column "weight" (default 1.0
+    from the preprocess pipeline). Only this column is used as weight; no string or
+    categorical column is used. You can later design business logic so the weight value
+    changes by record. Example: set weight = 2.0 when (remarks contain "policy deviation"
+    or a flag column indicates "requires_escalation"); else keep 1.0. That way records
+    matching certain conditions contribute more to stability/drift metrics. Implement
+    by computing weight in the preprocess or in a preprocessing step before calling
+    metrics(), so the dataframe passed here already has the desired weight column.
     """
     
     # 1. Initialize & Compute Stability Metrics (PSI, CSI)
     stability_monitor = stability.StabilityMonitor(
         df_baseline=df_baseline, 
         df_sample=df_sample, 
-        job_json=JOB,
-        group=GROUP
+        job_json=JOB
     )
     stability_metrics = stability_monitor.compute_stability_indices()
 
@@ -69,7 +158,7 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     ks_drift = drift_detector.calculate_drift(pre_defined_test="Kolmogorov-Smirnov", flattening_suffix="_ks_pvalue")
     summary_drift = drift_detector.calculate_drift(pre_defined_test="Summary")
 
-    # 3. Concatenate and yield final JSON payload
+    # 3. Concatenate result
     result = utils.merge(
         stability_metrics,
         es_drift,
@@ -78,7 +167,9 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
         ks_drift,
         summary_drift
     )
-    
+    # 4. Add ModelOp chart/table payloads for UI
+    viz = _build_m1_visualizations(result, df_sample)
+    result.update(viz)
     yield result
 
 
@@ -89,18 +180,50 @@ if __name__ == "__main__":
     print("Testing Monitor 1 locally...")
     
     # 1. Load the mock job JSON to simulate the platform environment
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        with open('modelop_schema.json', 'r') as f:
-            mock_schema = json.load(f)
+        with open(os.path.join(script_dir, 'modelop_schema.json'), 'r') as f:
+            schema_from_file = json.load(f)
     except FileNotFoundError:
         print("[!] modelop_schema.json not found. Run mtr_preprocess.py first.")
         sys.exit(1)
-        
+
+    # Convert preprocess schema (inputSchema.items.properties) to ModelOp infer format (fields array)
+    props = schema_from_file.get("inputSchema", {}).get("items", {}).get("properties", {})
+    fields = []
+    score_seen = False
+    for name, p in props.items():
+        role = p.get("role", "predictor")
+        if role == "score":
+            if score_seen:
+                role = "predictor"
+            else:
+                score_seen = True
+        if role == "non-predictor":
+            role = "non_predictor"
+        data_class = p.get("dataClass", "categorical")
+        if data_class not in ("numerical", "categorical"):
+            data_class = "categorical"
+        fields.append({
+            "name": name,
+            "role": role,
+            "dataClass": data_class,
+            "driftCandidate": role in ("predictor", "non_predictor"),
+            "specialValues": [],
+            "protectedClass": False,
+            "scoringOptional": False,
+            "type": "string" if p.get("type") not in ("int", "float", "double", "long", "string", "boolean", "null") else p.get("type", "string")
+        })
+    mock_schema_def = {"fields": fields}
+
+    # ModelOp expects modelMetaData.inputSchema = [ { "schemaDefinition": <schema> } ]
     mock_job = {
         "rawJson": json.dumps({
             "referenceModel": {
                 "storedModel": {
-                    "modelMetaData": mock_schema
+                    "modelMetaData": {
+                        "inputSchema": [{"schemaDefinition": mock_schema_def}]
+                    }
                 }
             }
         })
@@ -109,16 +232,57 @@ if __name__ == "__main__":
     # 2. Call init()
     init(mock_job)
     
-    # 3. Load test data
+    # 3. Load test data (full columns so schema columns exist; platform may pre-filter when invoking metrics())
     try:
-        df_b = pd.read_json('mtr_1_baseline.json', orient='records')
-        df_c = pd.read_json('mtr_1_comparator.json', orient='records')
+        df_b = pd.read_json(os.path.join(script_dir, 'CHIP_mtr_1_baseline.json'), orient='records')
+        df_c = pd.read_json(os.path.join(script_dir, 'CHIP_mtr_1_comparator.json'), orient='records')
+        if df_b.empty and df_c.empty:
+            print("[!] Both baseline and comparator are empty. Run preprocess with data that yields both splits.")
+            sys.exit(1)
+        if df_b.empty and len(df_c) > 0:
+            # Synthetic split so stability/drift have both non-empty: use first half as baseline, rest as comparator
+            n = max(1, len(df_c) // 2)
+            df_b = df_c.iloc[:n].copy()
+            df_c = df_c.iloc[n:].copy()
+            print("[*] Baseline was empty; using first half of comparator as baseline for local test.")
     except Exception as e:
          print(f"[!] Error loading test data: {e}")
          sys.exit(1)
          
-    # 4. Call metrics()
-    results = list(metrics(df_b, df_c))
-    
-    print("\n[SUCCESS] Yielded Metrics Payload:")
-    print(json.dumps(results[0], indent=2))
+    # 4. Call metrics() and 5. Always write metrics payload to JSON (even on error, so a file is produced every run)
+    out_path = os.path.join(script_dir, 'CHIP_mtr_1_test_results.json')
+
+    def _json_serial(obj):
+        if hasattr(obj, 'item'):
+            v = obj.item()
+            if isinstance(v, float) and (v != v or v == float('inf') or v == float('-inf')):
+                return None
+            return v
+        if isinstance(obj, float) and (obj != obj or obj == float('inf') or obj == float('-inf')):
+            return None
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+    def _nan_to_none(obj):
+        import math
+        if hasattr(obj, 'item'):
+            v = obj.item()
+            return None if isinstance(v, float) and (math.isnan(v) or math.isinf(v)) else v
+        if isinstance(obj, dict):
+            return {k: _nan_to_none(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_nan_to_none(x) for x in obj]
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+            return None
+        return obj
+
+    try:
+        results = list(metrics(df_b, df_c))
+        payload = _nan_to_none(results[0])
+    except Exception as e:
+        payload = {"error": str(e), "metrics_computed": False}
+        print(f"[!] metrics() failed: {e}")
+
+    with open(out_path, 'w') as f:
+        json.dump(payload, f, indent=2, default=_json_serial)
+    print(f"\n[SUCCESS] Output written to {out_path}")
+    print(json.dumps(payload, indent=2, default=_json_serial))

@@ -2,13 +2,293 @@
     "inputSchema": {
         "items": {
             "properties": {
+                "businessKey": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "batchId": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "ai_verification_time": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
                 "ai_overall_status": {
                     "role": "score",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "testName": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "ai_meets_specification": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "document_type": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "material_id": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "plant_id": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "batch_number": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "generated_by": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "date_generated": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "system": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "material_id_validation": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "plant_id_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "batch_number_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "dom_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "system_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_id": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "row_material": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_batch": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_inspection_lot": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "row_usage_decision_code": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "row_user_status": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_process_order": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "row_sled_bbd": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "row_coi": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "row_ai_status": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_material_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_usage_desc_code_validation_status": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_usage_desc_code_lot_validation_status": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_user_status_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_coi_pm_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "row_coi_npm_validation_result": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "cca_qeId": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "cca_submissionStatus": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "cca_fillingCountry": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "cca_submissionType": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "cca_plannedSubmissionDate": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "cca_actualSubmissionDate": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "cca_submissionId": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "em_lotNo": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "em_mediaName": {
+                    "role": "predictor",
                     "dataClass": "categorical",
                     "type": "string"
                 },
                 "hitl_qa_decision": {
-                    "role": "label",
+                    "role": "score",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "hitl_reviewer_id": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "hitl_review_time": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "feedback_event_count": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "first_feedback_at": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "last_feedback_at": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "feedback_actions": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "activity_event_count": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "first_activity_timestamp": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "last_activity_timestamp": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "activity_categories_seen": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "activity_field_names_seen": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "has_ai_verified": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "has_failed": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "cm_term": {
+                    "role": "predictor",
                     "dataClass": "categorical",
                     "type": "string"
                 }

@@ -1,16 +1,20 @@
 """
 BMS CHIP: Data Preprocessing & Monitor Asset Generation Pipeline
 ----------------------------------------------------------------
-This script transforms the raw Data/DB logs into stripped-down, monitor-specific 
-datasets required for ingestion into the ModelOp Center platform.
+Transforms raw Data/DB logs and AI responses into full-dimensional,
+monitor-ready datasets for ModelOp Center. Baseline/comparator split is
+based on ai_verification_time (date or record-volume threshold). All
+batch-related dimensions from AI Responses, batch_activity_log, and
+ai_feedback are included; monitors pre-filter columns as needed.
 
-It performs the following operations:
-    1. Derives Human Ground Truth & flattens Claude AI responses.
-    2. Merges and evaluates records against mapping configurations.
-    3. Splits the final dataset into Baseline (older) and Comparator (recent) sets.
-    4. Creates separate subdirectories (CHIP_mtr_1, CHIP_mtr_2, CHIP_mtr_3).
-    5. Exports full .csv and .json datasets, stripping out unneeded columns, to preserve traceability.
-    6. Generates schema, required_assets.json, and README.md in each subdirectory.
+Operations:
+    1. Derives Human Ground Truth; flattens Claude AI responses with full dimensions.
+    2. Enriches batch-level aggregates from activity and feedback logs.
+    3. Merges and evaluates records against config (config.yaml or DEFAULT_CONFIG).
+    4. Splits into Baseline and Comparator (DATE, VOLUME, or data-driven).
+    5. Writes CHIP_data/CHIP_master.csv and .json (with dataset, split_method).
+    6. Exports full column set to CHIP_mtr_1, CHIP_mtr_2, CHIP_mtr_3 (always baseline + comparator).
+    7. Generates schema, required_assets.json, README per monitor.
 """
 
 import json
@@ -19,8 +23,14 @@ import glob
 import pandas as pd
 from datetime import timedelta, timezone
 
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+
 # ==========================================
-# CONFIGURATION SETTINGS
+# CONFIGURATION
 # ==========================================
 
 DEFAULT_CONFIG = {
@@ -38,14 +48,53 @@ DEFAULT_CONFIG = {
     }
 }
 
-# The base columns that should be included in ALL datasets for traceability.
-# We append monitor-specific fields to this list during export.
-BASE_COLUMNS = [
-    'batchId',
-    'businessKey',
-    'ai_verification_time',
-    'hitl_review_time'
-]
+def load_config(config_path="config.yaml"):
+    if YAML_AVAILABLE and os.path.exists(config_path):
+        with open(config_path, "r") as f:
+            return yaml.safe_load(f)
+    return DEFAULT_CONFIG
+
+
+def get_latest_flat_file(directory, pattern):
+    """
+    Return the path to the latest file in `directory` matching `pattern` (e.g. 'batch_activity_log_*.json').
+    Selection is by modification time (mtime). Returns None if no match.
+    """
+    directory = os.path.abspath(directory)
+    if not os.path.isdir(directory):
+        return None
+    matches = glob.glob(os.path.join(directory, pattern))
+    if not matches:
+        return None
+    return max(matches, key=os.path.getmtime)
+
+
+def load_and_merge_with_upsert(file_paths, top_level_key, id_column='batchId'):
+    """
+    Load multiple JSON files that each have a top-level list key (e.g. 'batch_activity_log')
+    and merge into one DataFrame. Later files override earlier ones for rows with the same id_column (upsert).
+    file_paths: list of paths to JSON files.
+    top_level_key: key in each JSON whose value is a list of records.
+    id_column: column used to deduplicate; last occurrence wins.
+    """
+    if not file_paths:
+        return pd.DataFrame()
+    dfs = []
+    for path in file_paths:
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+            recs = data.get(top_level_key, []) if isinstance(data, dict) else []
+            if recs:
+                dfs.append(pd.DataFrame(recs))
+        except (FileNotFoundError, json.JSONDecodeError):
+            continue
+    if not dfs:
+        return pd.DataFrame()
+    combined = pd.concat(dfs, ignore_index=True)
+    if id_column in combined.columns:
+        combined = combined.drop_duplicates(subset=[id_column], keep='last').reset_index(drop=True)
+    return combined
 
 def parse_config_list(val):
     if isinstance(val, list): return [str(v).strip() for v in val]
@@ -62,6 +111,14 @@ def normalize_ai_status(val):
     elif val_str in ['false', 'planned', 'fail', 'invalid', 'no']: return 'FAIL'
     return 'FAIL'
 
+def _safe_get(d, *keys, default=None):
+    for k in keys:
+        if isinstance(d, dict) and k in d:
+            d = d[k]
+        else:
+            return default
+    return d if d is not None else default
+
 def derive_ground_truth(activity_file, feedback_file):
     try:
         with open(activity_file, 'r') as f: df_act = pd.DataFrame(json.load(f)['batch_activity_log'])
@@ -74,16 +131,13 @@ def derive_ground_truth(activity_file, feedback_file):
 
     reprocess_mask = df_act['category'].isin(['failed', 'revalidate', 'document-check-failed'])
     reprocess_batches = df_act[reprocess_mask]['batchId'].unique()
-    
     rejected_batches = df_fb[df_fb['feedback_type'] == 'ai-correction']['batchId'].unique() if not df_fb.empty and 'feedback_type' in df_fb.columns else []
     approved_batches = df_act[(df_act['field_name'] == 'batch_status') & (df_act['new_value'].isin(['COMPLETED', 'READY-FOR-APPROVAL']))]['batchId'].unique()
-    
     all_batches = set(df_act['batchId'].dropna().unique()).union(set(df_fb['batchId'].dropna().unique()) if not df_fb.empty else set())
-    
+
     gt_records = []
     for batch in all_batches:
         decision, reviewer_id, review_time = "Pending", None, None
-        
         if batch in reprocess_batches:
             decision = "Reprocess"
             latest = df_act[(df_act['batchId'] == batch) & reprocess_mask].sort_values('timestamp').iloc[-1]
@@ -96,7 +150,6 @@ def derive_ground_truth(activity_file, feedback_file):
             decision = "Approved"
             latest = df_act[(df_act['batchId'] == batch) & ((df_act['field_name'] == 'batch_status') & (df_act['new_value'].isin(['COMPLETED', 'READY-FOR-APPROVAL'])))].sort_values('timestamp').iloc[-1]
             reviewer_id, review_time = latest.get('user_id'), latest.get('timestamp')
-            
         gt_records.append({
             "batchId": batch,
             "hitl_qa_decision": decision,
@@ -106,46 +159,193 @@ def derive_ground_truth(activity_file, feedback_file):
     return pd.DataFrame(gt_records)
 
 def process_real_claude_responses(directory="AI Responses"):
+    """Flatten AI response JSONs and attach all flattenable dimensions (header, document_type, row/item fields)."""
     flattened_rows = []
     for filepath in glob.glob(os.path.join(directory, "*.json")):
         batch_id_fallback = os.path.basename(filepath).split('_')[0]
         try:
             with open(filepath, 'r') as f: data = json.load(f)
-        except json.JSONDecodeError: continue
-            
+        except json.JSONDecodeError:
+            continue
+
+        # ---- BG ----
         if "headerData" in data and "rows" in data:
-            batch_id = data.get("headerData", {}).get("batch_number", batch_id_fallback)
+            h = data.get("headerData", {})
+            batch_id = h.get("batch_number", batch_id_fallback)
+            ver_time = _safe_get(data, "summary", "verification_time") or ""
+            doc_type = "BG"
             for row in data.get("rows", []):
-                val = row.get("data", {}).get("overall_batch_result", "Unknown")
-                flattened_rows.append({"businessKey": f"{batch_id}-BG-ROW{row.get('row_id')}", "batchId": batch_id, "ai_verification_time": data.get("summary", {}).get("verification_time"), "ai_overall_status": normalize_ai_status(val), "testName": "BG_Material_Check", "ai_meets_specification": str(val)})
+                rdata = row.get("data", {})
+                val = rdata.get("overall_batch_result", "Unknown")
+                rec = {
+                    "businessKey": f"{batch_id}-BG-ROW{row.get('row_id')}",
+                    "batchId": batch_id,
+                    "ai_verification_time": ver_time,
+                    "ai_overall_status": normalize_ai_status(val),
+                    "testName": "BG_Material_Check",
+                    "ai_meets_specification": str(val),
+                    "document_type": doc_type,
+                    "material_id": h.get("material_id"),
+                    "plant_id": h.get("plant_id"),
+                    "batch_number": h.get("batch_number"),
+                    "generated_by": h.get("generated_by"),
+                    "date_generated": h.get("date_generated"),
+                    "system": h.get("system"),
+                    "material_id_validation": h.get("material_id_validation"),
+                    "plant_id_validation_result": h.get("plant_id_validation_result"),
+                    "batch_number_validation_result": h.get("batch_number_validation_result"),
+                    "dom_validation_result": h.get("dom_validation_result"),
+                    "system_validation_result": h.get("system_validation_result"),
+                    "row_id": row.get("row_id"),
+                    "row_material": rdata.get("material"),
+                    "row_batch": rdata.get("batch"),
+                    "row_inspection_lot": rdata.get("inspection_lot"),
+                    "row_usage_decision_code": rdata.get("usage_decision_code"),
+                    "row_user_status": rdata.get("user_status"),
+                    "row_process_order": rdata.get("process_order"),
+                    "row_sled_bbd": rdata.get("sled_bbd"),
+                    "row_coi": rdata.get("coi"),
+                    "row_ai_status": rdata.get("ai_status"),
+                    "row_material_validation_result": rdata.get("material_validation_result"),
+                    "row_usage_desc_code_validation_status": rdata.get("usage_desc_code_validation_status"),
+                    "row_usage_desc_code_lot_validation_status": rdata.get("usage_desc_code_lot_validation_status"),
+                    "row_user_status_validation_result": rdata.get("user_status_validation_result"),
+                    "row_coi_pm_validation_result": rdata.get("coi_pm_validation_result"),
+                    "row_coi_npm_validation_result": rdata.get("coi_npm_validation_result"),
+                }
+                flattened_rows.append(rec)
+
+        # ---- CCA ----
         elif "qeList" in data:
+            batch_id = batch_id_fallback
+            ver_time = data.get("verification_time", "")
+            doc_type = "CCA"
             for index, qe in enumerate(data.get("qeList", [])):
                 val = qe.get("submissionStatus", "Unknown")
                 qe_id = qe.get("qeId", index)
-                flattened_rows.append({"businessKey": f"{batch_id_fallback}-CCA-{qe_id}", "batchId": batch_id_fallback, "ai_verification_time": data.get("verification_time"), "ai_overall_status": normalize_ai_status(val), "testName": f"CCA_QE_Check_{qe_id}", "ai_meets_specification": str(val)})
+                rec = {
+                    "businessKey": f"{batch_id}-CCA-{qe_id}",
+                    "batchId": batch_id,
+                    "ai_verification_time": ver_time,
+                    "ai_overall_status": normalize_ai_status(val),
+                    "testName": f"CCA_QE_Check_{qe_id}",
+                    "ai_meets_specification": str(val),
+                    "document_type": doc_type,
+                    "cca_qeId": qe.get("qeId"),
+                    "cca_submissionStatus": qe.get("submissionStatus"),
+                    "cca_fillingCountry": qe.get("fillingCountry"),
+                    "cca_submissionType": qe.get("submissionType"),
+                    "cca_plannedSubmissionDate": qe.get("plannedSubmissionDate"),
+                    "cca_actualSubmissionDate": qe.get("actualSubmissionDate"),
+                    "cca_submissionId": qe.get("submissionId"),
+                }
+                flattened_rows.append(rec)
+
+        # ---- DA ----
         elif "qe" in data and "validationSummary" in data:
-            ver_time = data.get("validationSummary", {}).get("verification_time")
-            if not data.get("qe", []):
+            ver_time = data.get("validationSummary", {}).get("verification_time", "")
+            doc_type = "DA"
+            qe_list = data.get("qe", [])
+            if not qe_list:
                 val = data.get("validationSummary", {}).get("overallStatus", "PASS")
-                flattened_rows.append({"businessKey": f"{batch_id_fallback}-DA-SUMMARY", "batchId": batch_id_fallback, "ai_verification_time": ver_time, "ai_overall_status": normalize_ai_status(val), "testName": "DA_Summary_Check", "ai_meets_specification": str(val)})
+                flattened_rows.append({
+                    "businessKey": f"{batch_id_fallback}-DA-SUMMARY",
+                    "batchId": batch_id_fallback,
+                    "ai_verification_time": ver_time,
+                    "ai_overall_status": normalize_ai_status(val),
+                    "testName": "DA_Summary_Check",
+                    "ai_meets_specification": str(val),
+                    "document_type": doc_type,
+                })
             else:
-                for index, qe in enumerate(data.get("qe", [])):
+                for index, qe in enumerate(qe_list):
                     val = qe.get("overall_qe_status", "Unknown")
                     qe_no = qe.get("qe_no", index)
-                    flattened_rows.append({"businessKey": f"{batch_id_fallback}-DA-{qe_no}", "batchId": batch_id_fallback, "ai_verification_time": ver_time, "ai_overall_status": normalize_ai_status(val), "testName": f"DA_QE_Check_{qe_no}", "ai_meets_specification": str(qe.get("qe_status", "Unknown"))})
+                    rec = {
+                        "businessKey": f"{batch_id_fallback}-DA-{qe_no}",
+                        "batchId": batch_id_fallback,
+                        "ai_verification_time": ver_time,
+                        "ai_overall_status": normalize_ai_status(val),
+                        "testName": f"DA_QE_Check_{qe_no}",
+                        "ai_meets_specification": str(qe.get("qe_status", "Unknown")),
+                        "document_type": doc_type,
+                        "da_qe_no": qe.get("qe_no"),
+                        "da_overall_qe_status": qe.get("overall_qe_status"),
+                    }
+                    flattened_rows.append(rec)
+
+        # ---- EM ----
         elif "emProduct" in data:
-            ver_time = data.get("verificationTime") 
+            ver_time = data.get("verificationTime", "")
+            doc_type = "EM"
             for prod_idx, prod in enumerate(data.get("emProduct", [])):
                 lot_no = prod.get("lotNo", f"LOT{prod_idx}")
                 for m_idx, media in enumerate(prod.get("emMedia", [])):
                     val = media.get("mediaUsedExpValidStatus", "Unknown")
-                    media_name = media.get("mediaName", m_idx)
-                    flattened_rows.append({"businessKey": f"{batch_id_fallback}-EM-{lot_no}-MEDIA-{m_idx}", "batchId": batch_id_fallback, "ai_verification_time": ver_time, "ai_overall_status": normalize_ai_status(val), "testName": f"EM_Media_{media_name}", "ai_meets_specification": str(val)})
+                    flattened_rows.append({
+                        "businessKey": f"{batch_id_fallback}-EM-{lot_no}-MEDIA-{m_idx}",
+                        "batchId": batch_id_fallback,
+                        "ai_verification_time": ver_time,
+                        "ai_overall_status": normalize_ai_status(val),
+                        "testName": f"EM_Media_{media.get('mediaName', m_idx)}",
+                        "ai_meets_specification": str(val),
+                        "document_type": doc_type,
+                        "em_lotNo": lot_no,
+                        "em_mediaName": media.get("mediaName"),
+                    })
                 for s_idx, sample in enumerate(prod.get("emSample", [])):
                     val = sample.get("aiStatus", "Unknown")
-                    sample_type = sample.get("sampleType", s_idx)
-                    flattened_rows.append({"businessKey": f"{batch_id_fallback}-EM-{lot_no}-SAMPLE-{s_idx}", "batchId": batch_id_fallback, "ai_verification_time": ver_time, "ai_overall_status": normalize_ai_status(val), "testName": f"EM_Sample_{sample_type}", "ai_meets_specification": str(val)})
+                    flattened_rows.append({
+                        "businessKey": f"{batch_id_fallback}-EM-{lot_no}-SAMPLE-{s_idx}",
+                        "batchId": batch_id_fallback,
+                        "ai_verification_time": ver_time,
+                        "ai_overall_status": normalize_ai_status(val),
+                        "testName": f"EM_Sample_{sample.get('sampleType', s_idx)}",
+                        "ai_meets_specification": str(val),
+                        "document_type": doc_type,
+                        "em_lotNo": lot_no,
+                        "em_sampleType": sample.get("sampleType"),
+                    })
+
     return pd.DataFrame(flattened_rows)
+
+def enrich_batch_dimensions(df_merged, activity_file, feedback_file):
+    """Add batch-level aggregates from activity log and ai_feedback (one row per AI record; batch fields repeated)."""
+    try:
+        with open(activity_file, 'r') as f: df_act = pd.DataFrame(json.load(f)['batch_activity_log'])
+        with open(feedback_file, 'r') as f: df_fb = pd.DataFrame(json.load(f)['ai_feedback'])
+    except FileNotFoundError:
+        return df_merged
+
+    if 'batch_number' in df_act.columns: df_act = df_act.rename(columns={'batch_number': 'batchId'})
+    if 'batch_id' in df_fb.columns: df_fb = df_fb.rename(columns={'batch_id': 'batchId'})
+
+    # Activity aggregates per batch
+    act_agg = df_act.groupby('batchId').agg(
+        activity_event_count=('id', 'count'),
+        first_activity_timestamp=('timestamp', 'min'),
+        last_activity_timestamp=('timestamp', 'max'),
+    ).reset_index()
+    act_cats = df_act.groupby('batchId')['category'].apply(lambda x: '|'.join(sorted(x.astype(str).unique()))).reset_index().rename(columns={'category': 'activity_categories_seen'})
+    act_fields = df_act.groupby('batchId')['field_name'].apply(lambda x: '|'.join(sorted(x.astype(str).unique()))).reset_index().rename(columns={'field_name': 'activity_field_names_seen'})
+    act_agg = act_agg.merge(act_cats, on='batchId', how='left').merge(act_fields, on='batchId', how='left')
+    ai_verified_counts = df_act[df_act['category'] == 'ai-verified'].groupby('batchId').size()
+    failed_counts = df_act[df_act['category'] == 'failed'].groupby('batchId').size()
+    act_agg['has_ai_verified'] = act_agg['batchId'].map(lambda b: ai_verified_counts.get(b, 0) > 0)
+    act_agg['has_failed'] = act_agg['batchId'].map(lambda b: failed_counts.get(b, 0) > 0)
+
+    # Feedback aggregates per batch
+    if not df_fb.empty:
+        fb_agg = df_fb.groupby('batchId').agg(
+            feedback_event_count=('id', 'count'),
+            first_feedback_at=('created_at', 'min'),
+            last_feedback_at=('created_at', 'max'),
+        ).reset_index()
+        fb_actions = df_fb.groupby('batchId')['action'].apply(lambda x: '|'.join(sorted(x.astype(str).unique()))).reset_index().rename(columns={'action': 'feedback_actions'})
+        fb_agg = fb_agg.merge(fb_actions, on='batchId', how='left')
+        df_merged = df_merged.merge(fb_agg, on='batchId', how='left')
+    df_merged = df_merged.merge(act_agg, on='batchId', how='left')
+    return df_merged
 
 def map_m2_confusion_term(row, m2_config):
     ai = str(row.get('ai_overall_status', ''))
@@ -155,44 +355,92 @@ def map_m2_confusion_term(row, m2_config):
             return term
     return 'EXCLUDE'
 
+def compute_threshold_date(df_final, days_threshold=None, min_records_baseline=20, min_records_comparator=20):
+    """Return (threshold_date, used_days) for DATE split. If days_threshold is set, use it; else derive so both sides have at least min records."""
+    ser = df_final['ai_verification_time'].dropna()
+    if ser.empty:
+        return None, None
+    max_date = ser.max()
+    if days_threshold is not None and days_threshold > 0:
+        return max_date - timedelta(days=days_threshold), days_threshold
+    sorted_dates = ser.sort_values()
+    n = len(sorted_dates)
+    for i in range(n):
+        t = sorted_dates.iloc[i]
+        n_base = (ser <= t).sum()
+        n_comp = (ser > t).sum()
+        if n_base >= min_records_baseline and n_comp >= min_records_comparator:
+            return t, None
+    # fallback: median index
+    idx = max(0, n // 2 - 1)
+    return sorted_dates.iloc[idx], None
+
+
+def compute_threshold_date_by_fraction(df_final, baseline_fraction=0.4):
+    """Return (threshold_date, split_method_str) for percentile-based split: first baseline_fraction of time range = baseline."""
+    ser = df_final['ai_verification_time'].dropna()
+    if ser.empty:
+        return None, f"percentile-{baseline_fraction}"
+    min_date = ser.min()
+    max_date = ser.max()
+    if min_date >= max_date:
+        return min_date, f"percentile-{baseline_fraction}"
+    threshold_date = min_date + (max_date - min_date) * baseline_fraction
+    return threshold_date, f"percentile-{baseline_fraction}"
+
+
+def build_full_schema(all_columns, score_columns=None, label_columns=None):
+    """Build inputSchema with all columns; assign role/dataClass/type for ModelOp."""
+    score_columns = score_columns or []
+    label_columns = label_columns or []
+    properties = {}
+    for col in all_columns:
+        role = "predictor"
+        if col in score_columns:
+            role = "score"
+        elif col in label_columns:
+            role = "label"
+        elif col == "weight":
+            role = "weight"
+        dataClass = "categorical" if col in ("ai_overall_status", "hitl_qa_decision", "testName", "document_type") else "categorical"
+        if col == "weight":
+            dataClass = "numerical"
+        try:
+            if col != "weight" and ("timestamp" in col or "time" in col or "date" in col or "at" in col):
+                dataClass = "datetime"
+        except Exception:
+            pass
+        schema_type = "float" if col == "weight" else "string"
+        properties[col] = {"role": role, "dataClass": dataClass, "type": schema_type}
+    return {"inputSchema": {"items": {"properties": properties}}}
+
 # ==========================================
-# EXPORT HELPERS
+# EXPORT
 # ==========================================
 
-def export_monitor_assets(df_base, df_comp, monitor_name, schema_def, description, cols_to_keep):
-    """Creates directory, saves filtered CSV/JSON, and creates ModelOp required documentation."""
+def export_monitor_assets(df_base, df_comp, monitor_name, schema_def, description, cols_to_keep_legend=None):
+    """Export ALL columns to baseline and comparator CSV/JSON; always write both files (even if empty)."""
     os.makedirs(monitor_name, exist_ok=True)
-    
-    # Combine the universal BASE_COLUMNS with the monitor-specific cols_to_keep
-    # Use set() to remove any duplicates, then convert back to list
-    final_cols = list(set(BASE_COLUMNS + cols_to_keep))
-    
-    # Safely filter datasets to ONLY the columns that actually exist in the dataframe
-    # This prevents KeyError if a column in BASE_COLUMNS or cols_to_keep is missing from df
-    final_cols_b = [col for col in final_cols if col in df_base.columns]
-    df_b = df_base[final_cols_b].copy() if not df_base.empty else pd.DataFrame(columns=final_cols_b)
-    
-    final_cols_c = [col for col in final_cols if col in df_comp.columns]
-    df_c = df_comp[final_cols_c].copy() if not df_comp.empty else pd.DataFrame(columns=final_cols_c)
-    
-    # Export Data
-    if not df_b.empty:
-        df_b.to_csv(os.path.join(monitor_name, f'{monitor_name}_baseline.csv'), index=False)
-        df_b.to_json(os.path.join(monitor_name, f'{monitor_name}_baseline.json'), orient='records', date_format='iso')
-    
-    if not df_c.empty:
-        df_c.to_csv(os.path.join(monitor_name, f'{monitor_name}_comparator.csv'), index=False)
-        df_c.to_json(os.path.join(monitor_name, f'{monitor_name}_comparator.json'), orient='records', date_format='iso')
-    
-    # Create ModelOp compatible Schema JSON & Blank CSV
+    all_cols_b = [c for c in df_base.columns]
+    all_cols_c = [c for c in df_comp.columns]
+    all_cols = list(dict.fromkeys(all_cols_b + all_cols_c))
+    df_b = df_base.copy() if not df_base.empty else pd.DataFrame(columns=all_cols_b if all_cols_b else all_cols)
+    df_c = df_comp.copy() if not df_comp.empty else pd.DataFrame(columns=all_cols_c if all_cols_c else all_cols)
+    for c in all_cols:
+        if c not in df_b.columns: df_b[c] = None
+        if c not in df_c.columns: df_c[c] = None
+
+    # Always write both baseline and comparator
+    df_b.to_csv(os.path.join(monitor_name, f'{monitor_name}_baseline.csv'), index=False)
+    df_b.to_json(os.path.join(monitor_name, f'{monitor_name}_baseline.json'), orient='records', date_format='iso')
+    df_c.to_csv(os.path.join(monitor_name, f'{monitor_name}_comparator.csv'), index=False)
+    df_c.to_json(os.path.join(monitor_name, f'{monitor_name}_comparator.json'), orient='records', date_format='iso')
+
     with open(os.path.join(monitor_name, 'modelop_schema.json'), 'w') as f:
         json.dump(schema_def, f, indent=4)
-        
-    # Create the blank_schema_asset using ONLY the schema keys so the UI mapper is clean
     schema_cols = list(schema_def.get("inputSchema", {}).get("items", {}).get("properties", {}).keys())
     pd.DataFrame(columns=schema_cols).to_csv(os.path.join(monitor_name, 'blank_schema_asset.csv'), index=False)
 
-    # 1. Generate required_assets.json (Per ModelOp Best Practices)
     required_assets = [
         {"role": "baseline_data", "description": "Historical Baseline Data required for comparison."},
         {"role": "comparator_data", "description": "Recent Production Comparator Data required for evaluation."},
@@ -201,112 +449,168 @@ def export_monitor_assets(df_base, df_comp, monitor_name, schema_def, descriptio
     with open(os.path.join(monitor_name, 'required_assets.json'), 'w') as f:
         json.dump(required_assets, f, indent=4)
 
-    # 2. Generate standard README.md (Per ModelOp Best Practices)
-    readme_content = """# {monitor_name_upper} Monitor
+    readme_content = """# {} Monitor
 
-{description}
+{}
 
 ## Required Assets
 - **Baseline Data:** Historical dataset for establishing the baseline.
 - **Comparator Data:** Production dataset to be evaluated.
 - **Schema Asset:** Used by `infer.validate_schema()` to identify role assignments.
 
-## Execution
-1. The `init` function reads the schema asset to identify predictors, scores, and labels.
-2. The `metrics` function computes the test results and yields the JSON payload.
-""".format(monitor_name_upper=monitor_name.upper(), description=description)
-
+## Full-dimensional data
+Baseline and comparator contain all batch-related columns. This monitor may pre-filter to the columns it needs in `init`/`metrics`.
+""".format(monitor_name.upper(), description)
     with open(os.path.join(monitor_name, 'README.md'), 'w') as f:
         f.write(readme_content)
 
 # ==========================================
-# MAIN EXECUTION
+# MAIN
 # ==========================================
 
-def execute_pipeline(days_threshold=30):
+def execute_pipeline(
+    split_method='DATE',
+    days_threshold=None,
+    volume_threshold=5000,
+    baseline_start_date=None,
+    activity_file='batch_activity_log_202603042226.json',
+    feedback_file='ai_feedback_202603042225.json',
+    ai_responses_dir='AI Responses',
+    config_path='config.yaml',
+    min_records_baseline=20,
+    min_records_comparator=20,
+):
     print("--- Starting MTR Data Preprocessing Pipeline ---\n")
-    
-    df_ground_truth = derive_ground_truth('batch_activity_log_202603042226.json', 'ai_feedback_202603042225.json')
-    df_ai_flattened = process_real_claude_responses("AI Responses")
-    
+    config = load_config(config_path)
+
+    # Optional: resolve paths from config (latest-file selection by pattern)
+    sources = config.get('sources') or {}
+    act_dir = sources.get('activity_directory', '.')
+    act_pat = sources.get('activity_pattern')
+    if act_pat:
+        resolved_activity = get_latest_flat_file(act_dir, act_pat)
+        if resolved_activity:
+            activity_file = resolved_activity
+            print(f"[*] Using latest activity file: {activity_file}")
+    fb_dir = sources.get('feedback_directory', '.')
+    fb_pat = sources.get('feedback_pattern')
+    if fb_pat:
+        resolved_feedback = get_latest_flat_file(fb_dir, fb_pat)
+        if resolved_feedback:
+            feedback_file = resolved_feedback
+            print(f"[*] Using latest feedback file: {feedback_file}")
+    if sources.get('ai_responses_dir') is not None:
+        ai_responses_dir = sources.get('ai_responses_dir')
+
+    # Optional: override split parameters from config
+    split_cfg = config.get('split') or {}
+    if split_cfg:
+        if 'days_threshold' in split_cfg:
+            days_threshold = split_cfg['days_threshold']
+        if 'min_records_baseline' in split_cfg:
+            min_records_baseline = split_cfg['min_records_baseline']
+        if 'min_records_comparator' in split_cfg:
+            min_records_comparator = split_cfg['min_records_comparator']
+
+    df_ground_truth = derive_ground_truth(activity_file, feedback_file)
+    df_ai_flattened = process_real_claude_responses(ai_responses_dir)
+
     if df_ai_flattened.empty:
         print("[!] No AI records processed.")
         return
-        
+
     df_final = pd.merge(df_ai_flattened, df_ground_truth, on='batchId', how='left')
     df_final['hitl_qa_decision'] = df_final['hitl_qa_decision'].fillna('Pending')
-    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(DEFAULT_CONFIG['monitor_2_performance'],), axis=1)
+    df_final = enrich_batch_dimensions(df_final, activity_file, feedback_file)
+    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(config['monitor_2_performance'],), axis=1)
 
     df_final['ai_verification_time'] = pd.to_datetime(df_final['ai_verification_time'], format='mixed', utc=True)
     df_final = df_final.sort_values('ai_verification_time').reset_index(drop=True)
-    
-    # Split Data (DATE Method)
-    max_date = df_final['ai_verification_time'].max()
-    threshold_date = max_date - timedelta(days=days_threshold)
-    df_base_master = df_final[df_final['ai_verification_time'] <= threshold_date].copy()
-    df_comp_master = df_final[df_final['ai_verification_time'] > threshold_date].copy()
 
-    print(f"[*] Splitting complete. Master Baseline: {len(df_base_master)} rows, Master Comparator: {len(df_comp_master)} rows.")
-    print("\n[*] Generating Monitor-specific Subdirectories and Assets...")
+    # Explicit numeric weight column (default 1.0). ModelOp stability/drift monitors require a numeric weight;
+    # no string column must be used as weight. Business logic can be applied later (e.g. increase weight when
+    # remarks indicate policy misalignment, or when certain flags are set). See docs/DATA_INGESTION.md or
+    # monitor metrics() docstrings for design examples.
+    df_final['weight'] = 1.0
 
-    # ---------------------------------------------------------
-    # MONITOR 1: AI Output Stability (PSI) & Drift
-    # ---------------------------------------------------------
-    m1_schema = {
-        "inputSchema": {"items": {"properties": {
-            "ai_overall_status": {"role": "score", "dataClass": "categorical", "type": "string"},
-            "testName": {"role": "predictor", "dataClass": "categorical", "type": "string"},
-            "ai_meets_specification": {"role": "predictor", "dataClass": "categorical", "type": "string"}
-        }}}
-    }
-    m1_desc = "Tracks the behavior and drift of the Claude AI model's output over time using Population Stability Index (PSI) and Data Drift methods."
-    m1_cols_to_keep = ['ai_overall_status', 'testName', 'ai_meets_specification']
-    
-    m1_allowed = parse_config_list(DEFAULT_CONFIG['monitor_1_stability']['allowed_ai_overall_status'])
+    if baseline_start_date:
+        start_dt = pd.to_datetime(baseline_start_date).replace(tzinfo=timezone.utc)
+        df_final = df_final[df_final['ai_verification_time'] >= start_dt]
+
+    split_method_upper = split_method.upper()
+    if split_method_upper == 'DATE':
+        baseline_fraction = (config.get('split') or {}).get('baseline_fraction')
+        if baseline_fraction is not None and days_threshold is None:
+            threshold_date, split_method_str = compute_threshold_date_by_fraction(df_final, baseline_fraction=baseline_fraction)
+            if threshold_date is None:
+                threshold_date, _ = compute_threshold_date(df_final, days_threshold=None, min_records_baseline=min_records_baseline, min_records_comparator=min_records_comparator)
+                split_method_str = "date-auto"
+        else:
+            threshold_date, used_days = compute_threshold_date(df_final, days_threshold=days_threshold, min_records_baseline=min_records_baseline, min_records_comparator=min_records_comparator)
+            if threshold_date is None:
+                threshold_date = df_final['ai_verification_time'].max() - timedelta(days=days_threshold or 30)
+                used_days = days_threshold or 30
+            n_baseline = (df_final['ai_verification_time'] <= threshold_date).sum()
+            if n_baseline == 0 and days_threshold is not None:
+                threshold_date, _ = compute_threshold_date(df_final, days_threshold=None, min_records_baseline=min_records_baseline, min_records_comparator=min_records_comparator)
+                used_days = None
+                print("[*] Fixed-day split would give empty baseline; using data-driven cutoff (date-auto).")
+            split_method_str = f"date-{used_days if used_days is not None else 'auto'}"
+        df_base_master = df_final[df_final['ai_verification_time'] <= threshold_date].copy()
+        df_comp_master = df_final[df_final['ai_verification_time'] > threshold_date].copy()
+        print(f"[*] Splitting by date (cutoff: {threshold_date}, method: {split_method_str}); baseline={len(df_base_master)}, comparator={len(df_comp_master)}")
+    elif split_method_upper == 'VOLUME':
+        split_method_str = f"volume-{volume_threshold}"
+        if len(df_final) <= volume_threshold:
+            df_base_master = df_final.copy()
+            df_comp_master = pd.DataFrame(columns=df_final.columns)
+        else:
+            df_base_master = df_final.iloc[:volume_threshold].copy()
+            df_comp_master = df_final.iloc[volume_threshold:].copy()
+        print(f"[*] Splitting by volume (baseline size={volume_threshold}); baseline={len(df_base_master)}, comparator={len(df_comp_master)}")
+    else:
+        raise ValueError("split_method must be 'DATE' or 'VOLUME'.")
+
+    # Master dataset with dataset + split_method
+    os.makedirs('CHIP_data', exist_ok=True)
+    df_base_master = df_base_master.copy()
+    df_comp_master = df_comp_master.copy()
+    df_base_master['dataset'] = 'baseline'
+    df_base_master['split_method'] = split_method_str
+    df_comp_master['dataset'] = 'comparator'
+    df_comp_master['split_method'] = split_method_str
+    df_master = pd.concat([df_base_master, df_comp_master], ignore_index=True)
+    df_master.to_csv(os.path.join('CHIP_data', 'CHIP_master.csv'), index=False)
+    df_master.to_json(os.path.join('CHIP_data', 'CHIP_master.json'), orient='records', date_format='iso')
+    print(f"[*] CHIP_data/CHIP_master.csv and CHIP_master.json written (dataset + split_method columns).")
+
+    # Remove auxiliary columns from baseline/comparator for monitor dirs (they already have dataset/split_method in master only; for monitor dirs we don't add dataset/split_method)
+    df_base_master = df_base_master.drop(columns=['dataset', 'split_method'], errors='ignore')
+    df_comp_master = df_comp_master.drop(columns=['dataset', 'split_method'], errors='ignore')
+
+    all_columns = list(df_base_master.columns)
+    full_schema = build_full_schema(all_columns, score_columns=['ai_overall_status', 'hitl_qa_decision'], label_columns=['hitl_qa_decision'])
+
+    # Monitor 1
+    m1_allowed = parse_config_list(config['monitor_1_stability'].get('allowed_ai_overall_status', []))
     df_m1_base = df_base_master[df_base_master['ai_overall_status'].isin(m1_allowed)]
     df_m1_comp = df_comp_master[df_comp_master['ai_overall_status'].isin(m1_allowed)]
-    
-    export_monitor_assets(df_m1_base, df_m1_comp, 'CHIP_mtr_1', m1_schema, m1_desc, m1_cols_to_keep)
-    print("  -> CHIP_mtr_1/ assets created successfully.")
+    export_monitor_assets(df_m1_base, df_m1_comp, 'CHIP_mtr_1', full_schema, "Tracks the behavior and drift of the Claude AI model's output over time using PSI and Data Drift methods.", ['ai_overall_status', 'testName', 'ai_meets_specification'])
+    print("  -> CHIP_mtr_1/ assets created.")
 
-    # ---------------------------------------------------------
-    # MONITOR 2: Operational Approval Concordance (Performance)
-    # ---------------------------------------------------------
-    m2_schema = {
-        "inputSchema": {"items": {"properties": {
-            "ai_overall_status": {"role": "score", "dataClass": "categorical", "type": "string"},
-            "hitl_qa_decision": {"role": "label", "dataClass": "categorical", "type": "string"}
-        }}}
-    }
-    m2_desc = "Evaluates the operational performance of the AI by calculating Concordance (Accuracy, Precision, Recall) against Human-In-The-Loop Ground Truth."
-    m2_cols_to_keep = ['ai_overall_status', 'hitl_qa_decision']
-
+    # Monitor 2
     df_m2_base = df_base_master[df_base_master['cm_term'] != 'EXCLUDE']
     df_m2_comp = df_comp_master[df_comp_master['cm_term'] != 'EXCLUDE']
-    
-    export_monitor_assets(df_m2_base, df_m2_comp, 'CHIP_mtr_2', m2_schema, m2_desc, m2_cols_to_keep)
-    print("  -> CHIP_mtr_2/ assets created successfully.")
+    export_monitor_assets(df_m2_base, df_m2_comp, 'CHIP_mtr_2', full_schema, "Evaluates operational performance (Accuracy, Precision, Recall) against Human-In-The-Loop Ground Truth.", ['ai_overall_status', 'hitl_qa_decision'])
+    print("  -> CHIP_mtr_2/ assets created.")
 
-    # ---------------------------------------------------------
-    # MONITOR 3: QA Calibration (HITL Stability)
-    # ---------------------------------------------------------
-    m3_schema = {
-        "inputSchema": {"items": {"properties": {
-            "hitl_qa_decision": {"role": "score", "dataClass": "categorical", "type": "string"},
-            "hitl_reviewer_id": {"role": "predictor", "dataClass": "categorical", "type": "string"},
-            "testName": {"role": "predictor", "dataClass": "categorical", "type": "string"}
-        }}}
-    }
-    m3_desc = "Tracks Human QA behavior drift (e.g., rubber-stamping detection) and human intervention volume changes."
-    m3_cols_to_keep = ['hitl_qa_decision', 'hitl_reviewer_id', 'testName']
-
-    m3_allowed = parse_config_list(DEFAULT_CONFIG['monitor_3_calibration']['allowed_hitl_qa_decision'])
+    # Monitor 3
+    m3_allowed = parse_config_list(config['monitor_3_calibration'].get('allowed_hitl_qa_decision', []))
     df_m3_base = df_base_master[df_base_master['hitl_qa_decision'].isin(m3_allowed)]
     df_m3_comp = df_comp_master[df_comp_master['hitl_qa_decision'].isin(m3_allowed)]
-    
-    export_monitor_assets(df_m3_base, df_m3_comp, 'CHIP_mtr_3', m3_schema, m3_desc, m3_cols_to_keep)
-    print("  -> CHIP_mtr_3/ assets created successfully.")
+    export_monitor_assets(df_m3_base, df_m3_comp, 'CHIP_mtr_3', full_schema, "Tracks Human QA behavior drift and human intervention volume changes.", ['hitl_qa_decision', 'hitl_reviewer_id', 'testName'])
+    print("  -> CHIP_mtr_3/ assets created.")
     print("\n--- Pipeline Complete ---")
 
 if __name__ == "__main__":
-    execute_pipeline(days_threshold=30)
+    execute_pipeline(split_method='DATE')
