@@ -108,6 +108,17 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
             'data': {'Count': counts},
             'categories': cats
         }
+    # Enrich with reviewer volume and activity/feedback when present (from preprocess)
+    if 'hitl_reviewer_id' in df_eval.columns:
+        vc = df_eval['hitl_reviewer_id'].fillna('Unknown').astype(str).value_counts()
+        out['reviewer_volume'] = _to_native([{'reviewer': str(k), 'volume': int(v)} for k, v in vc.items()])
+    summary = {}
+    if 'feedback_event_count' in df_eval.columns:
+        summary['total_feedback_events'] = int(df_eval['feedback_event_count'].fillna(0).sum())
+    if 'activity_comment_count' in df_eval.columns:
+        summary['total_activity_comments'] = int(df_eval['activity_comment_count'].fillna(0).sum())
+    if summary:
+        out['activity_feedback_summary'] = _to_native(summary)
     return out
 
 

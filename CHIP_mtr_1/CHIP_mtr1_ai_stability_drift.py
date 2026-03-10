@@ -116,6 +116,12 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         rows.append({'Metric': 'Score PSI', 'Feature': score_psi_key.replace('_PSI', ''), 'Value': _to_native(result[score_psi_key])})
     if not rows:
         rows.append({'Metric': 'Stability/Drift', 'Feature': '-', 'Value': '-'})
+    if 'activity_comment_count' in df_sample.columns and 'feedback_text_count' in df_sample.columns:
+        total_act = int(pd.to_numeric(df_sample['activity_comment_count'], errors='coerce').fillna(0).sum())
+        total_fb = int(pd.to_numeric(df_sample['feedback_text_count'], errors='coerce').fillna(0).sum())
+        rows.append({'Metric': 'Comparator activity comment count (total)', 'Feature': 'Activity/Feedback', 'Value': total_act})
+        rows.append({'Metric': 'Comparator feedback text count (total)', 'Feature': 'Activity/Feedback', 'Value': total_fb})
+        out['activity_feedback_summary'] = _to_native({'comparator_activity_comment_count_total': total_act, 'comparator_feedback_text_count_total': total_fb})
     out['generic_table'] = rows
     # --- Part-to-whole: donut and pie (ModelOp generic_donut_chart, generic_pie_chart) ---
     if 'ai_overall_status' in df_sample.columns:

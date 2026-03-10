@@ -103,6 +103,16 @@
       "1"
     ]
   },
+  "reviewer_volume": [
+    {
+      "reviewer": "USER-251.0",
+      "volume": 232
+    }
+  ],
+  "activity_feedback_summary": {
+    "total_feedback_events": 0,
+    "total_activity_comments": 3669
+  },
   "firstPredictionDate": "2026-02-27T16:48:20+00:00",
   "lastPredictionDate": "2026-03-04T11:34:43+00:00"
 }

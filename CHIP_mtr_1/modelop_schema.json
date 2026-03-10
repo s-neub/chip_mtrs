@@ -252,6 +252,16 @@
                     "dataClass": "categorical",
                     "type": "string"
                 },
+                "feedback_text_sample": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "feedback_text_count": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
                 "activity_event_count": {
                     "role": "predictor",
                     "dataClass": "categorical",
@@ -277,12 +287,67 @@
                     "dataClass": "categorical",
                     "type": "string"
                 },
+                "activity_comment_sample": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "activity_comment_count": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
                 "has_ai_verified": {
                     "role": "predictor",
                     "dataClass": "categorical",
                     "type": "string"
                 },
                 "has_failed": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "batch_e_signed": {
+                    "role": "predictor",
+                    "dataClass": "datetime",
+                    "type": "string"
+                },
+                "e_signer_user_id": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "e_signer_name": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "current_assignee_name": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "previous_assignee_name": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "current_assignee_id": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "activity_commenter_names": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "activity_mentioned_names": {
+                    "role": "predictor",
+                    "dataClass": "categorical",
+                    "type": "string"
+                },
+                "hitl_reviewer_name": {
                     "role": "predictor",
                     "dataClass": "categorical",
                     "type": "string"

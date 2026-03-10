@@ -53,13 +53,26 @@
   "first_feedback_at_CSI": 0.0,
   "last_feedback_at_CSI": 0.0,
   "feedback_actions_CSI": 0.0,
+  "feedback_text_sample_CSI": 0.0,
+  "feedback_text_count_CSI": 0.0,
   "activity_event_count_CSI": 2.561617,
   "first_activity_timestamp_CSI": 2.561617,
   "last_activity_timestamp_CSI": 2.561617,
   "activity_categories_seen_CSI": 2.561617,
   "activity_field_names_seen_CSI": 2.561617,
+  "activity_comment_sample_CSI": 2.561617,
+  "activity_comment_count_CSI": 2.561617,
   "has_ai_verified_CSI": 0.0,
   "has_failed_CSI": 0.0,
+  "batch_e_signed_CSI": 2.561617,
+  "e_signer_user_id_CSI": 2.561617,
+  "e_signer_name_CSI": 0.0,
+  "current_assignee_name_CSI": 2.561617,
+  "previous_assignee_name_CSI": 2.561617,
+  "current_assignee_id_CSI": 2.561617,
+  "activity_commenter_names_CSI": 0.0,
+  "activity_mentioned_names_CSI": 0.0,
+  "hitl_reviewer_name_CSI": 2.561617,
   "cm_term_CSI": 0.110846,
   "stability": [
     {
@@ -27681,6 +27694,50 @@
           "stability_chisq": 0.0,
           "stability_ks": 0.0
         },
+        "feedback_text_sample": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 216,
+              "eval_count": 232,
+              "train_percent": 1.0,
+              "eval_percent": 1.0,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.935345,
+              "score_mean_diff": -0.055396,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.0,
+              "psi_calc": 0.0
+            }
+          ],
+          "stability_index": 0.0,
+          "stability_chisq": 0.0,
+          "stability_ks": 0.0
+        },
+        "feedback_text_count": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 216,
+              "eval_count": 232,
+              "train_percent": 1.0,
+              "eval_percent": 1.0,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.935345,
+              "score_mean_diff": -0.055396,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.0,
+              "psi_calc": 0.0
+            }
+          ],
+          "stability_index": 0.0,
+          "stability_chisq": 0.0,
+          "stability_ks": 0.0
+        },
         "activity_event_count": {
           "stability_analysis_table": [
             {
@@ -27866,6 +27923,80 @@
           "stability_chisq": 0.87487,
           "stability_ks": 0.935345
         },
+        "activity_comment_sample": {
+          "stability_analysis_table": [
+            {
+              "bucket": "Document coa uploaded for batch ADJ9318 | ADJ9318: AI-VERIFIED for Change Control Assessment | ADJ9318: Change Control Assessment status changed to Ready For Approval | ADJ9318: Certificate of Analysis report has been generated. | Batch ADJ9318: COA processing failed",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 0.064655,
+              "ks_calc": 0.935345,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            },
+            {
+              "bucket": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": null,
+              "psi_calc": null
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
+        "activity_comment_count": {
+          "stability_analysis_table": [
+            {
+              "bucket": "71.0",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 0.064655,
+              "ks_calc": 0.935345,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            },
+            {
+              "bucket": "12.0",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": null,
+              "psi_calc": null
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
         "has_ai_verified": {
           "stability_analysis_table": [
             {
@@ -27909,6 +28040,294 @@
           "stability_index": 0.0,
           "stability_chisq": 0.0,
           "stability_ks": 0.0
+        },
+        "batch_e_signed": {
+          "stability_analysis_table": [
+            {
+              "bucket": "True",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 0.064655,
+              "ks_calc": 0.935345,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            },
+            {
+              "bucket": "False",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": null,
+              "psi_calc": null
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
+        "e_signer_user_id": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 0.0,
+              "eval_cum_percent": 0.935345,
+              "ks_calc": 0.935345,
+              "chisq_calc": null,
+              "psi_calc": null
+            },
+            {
+              "bucket": "217.0",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
+        "e_signer_name": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 216,
+              "eval_count": 232,
+              "train_percent": 1.0,
+              "eval_percent": 1.0,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.935345,
+              "score_mean_diff": -0.055396,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.0,
+              "psi_calc": 0.0
+            }
+          ],
+          "stability_index": 0.0,
+          "stability_chisq": 0.0,
+          "stability_ks": 0.0
+        },
+        "current_assignee_name": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 0.0,
+              "eval_cum_percent": 0.935345,
+              "ks_calc": 0.935345,
+              "chisq_calc": null,
+              "psi_calc": null
+            },
+            {
+              "bucket": "Tanya Chakladar",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
+        "previous_assignee_name": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 0.0,
+              "eval_cum_percent": 0.935345,
+              "ks_calc": 0.935345,
+              "chisq_calc": null,
+              "psi_calc": null
+            },
+            {
+              "bucket": "Heliana Downing",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
+        "current_assignee_id": {
+          "stability_analysis_table": [
+            {
+              "bucket": "Eswar Vamsi Krishna",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 0.064655,
+              "ks_calc": 0.935345,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            },
+            {
+              "bucket": "Madhu Konagandla",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": null,
+              "psi_calc": null
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
+        },
+        "activity_commenter_names": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 216,
+              "eval_count": 232,
+              "train_percent": 1.0,
+              "eval_percent": 1.0,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.935345,
+              "score_mean_diff": -0.055396,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.0,
+              "psi_calc": 0.0
+            }
+          ],
+          "stability_index": 0.0,
+          "stability_chisq": 0.0,
+          "stability_ks": 0.0
+        },
+        "activity_mentioned_names": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 216,
+              "eval_count": 232,
+              "train_percent": 1.0,
+              "eval_percent": 1.0,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.935345,
+              "score_mean_diff": -0.055396,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.0,
+              "psi_calc": 0.0
+            }
+          ],
+          "stability_index": 0.0,
+          "stability_chisq": 0.0,
+          "stability_ks": 0.0
+        },
+        "hitl_reviewer_name": {
+          "stability_analysis_table": [
+            {
+              "bucket": "__MISSING__",
+              "train_count": 0,
+              "eval_count": 217,
+              "train_percent": 0.0,
+              "eval_percent": 0.935345,
+              "train_mean_score": null,
+              "eval_mean_score": 0.995392,
+              "score_mean_diff": null,
+              "train_cum_percent": 0.0,
+              "eval_cum_percent": 0.935345,
+              "ks_calc": 0.935345,
+              "chisq_calc": null,
+              "psi_calc": null
+            },
+            {
+              "bucket": "Tanya Chakladar",
+              "train_count": 216,
+              "eval_count": 15,
+              "train_percent": 1.0,
+              "eval_percent": 0.064655,
+              "train_mean_score": 0.990741,
+              "eval_mean_score": 0.066667,
+              "score_mean_diff": -0.924074,
+              "train_cum_percent": 1.0,
+              "eval_cum_percent": 1.0,
+              "ks_calc": 0.0,
+              "chisq_calc": 0.87487,
+              "psi_calc": 2.561617
+            }
+          ],
+          "stability_index": 2.561617,
+          "stability_chisq": 0.87487,
+          "stability_ks": 0.935345
         },
         "cm_term": {
           "stability_analysis_table": [
@@ -28018,6 +28437,7 @@
         "cca_submissionId": 0.8326,
         "em_lotNo": 0.8326,
         "em_mediaName": 0.8326,
+        "e_signer_user_id": 0.8326,
         "material_id": 0.8273,
         "plant_id": 0.8273,
         "batch_number": 0.8273,
@@ -28030,6 +28450,13 @@
         "last_activity_timestamp": 0.7558,
         "activity_categories_seen": 0.7558,
         "activity_field_names_seen": 0.7558,
+        "activity_comment_sample": 0.7558,
+        "activity_comment_count": 0.7558,
+        "batch_e_signed": 0.7558,
+        "current_assignee_name": 0.7558,
+        "previous_assignee_name": 0.7558,
+        "current_assignee_id": 0.7558,
+        "hitl_reviewer_name": 0.7558,
         "row_process_order": 0.5967,
         "row_inspection_lot": 0.5786,
         "row_material": 0.4213,
@@ -28062,8 +28489,13 @@
         "first_feedback_at": 0.0,
         "last_feedback_at": 0.0,
         "feedback_actions": 0.0,
+        "feedback_text_sample": 0.0,
+        "feedback_text_count": 0.0,
         "has_ai_verified": 0.0,
-        "has_failed": 0.0
+        "has_failed": 0.0,
+        "e_signer_name": 0.0,
+        "activity_commenter_names": 0.0,
+        "activity_mentioned_names": 0.0
       }
     },
     {
@@ -28122,13 +28554,26 @@
         "first_feedback_at": 0.0,
         "last_feedback_at": 0.0,
         "feedback_actions": 0.0,
+        "feedback_text_sample": 0.0,
+        "feedback_text_count": 0.0,
         "activity_event_count": 1.8033,
         "first_activity_timestamp": 1.8033,
         "last_activity_timestamp": 1.8033,
         "activity_categories_seen": 1.8033,
         "activity_field_names_seen": 1.8033,
+        "activity_comment_sample": 1.8033,
+        "activity_comment_count": 1.8033,
         "has_ai_verified": 0.0,
         "has_failed": 0.0,
+        "batch_e_signed": 1.8033,
+        "e_signer_user_id": 0.0,
+        "e_signer_name": 0.0,
+        "current_assignee_name": 1.8033,
+        "previous_assignee_name": 1.8033,
+        "current_assignee_id": 1.8033,
+        "activity_commenter_names": 0.0,
+        "activity_mentioned_names": 0.0,
+        "hitl_reviewer_name": 1.8033,
         "cm_term": 0.039
       }
     },
@@ -28933,6 +29378,38 @@
               "count_of_nulls": 0
             }
           },
+          "feedback_text_sample": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "nan",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 1,
+              "top": "nan",
+              "freq": 232,
+              "count_of_nulls": 0
+            }
+          },
+          "feedback_text_count": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "nan",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 1,
+              "top": "nan",
+              "freq": 232,
+              "count_of_nulls": 0
+            }
+          },
           "activity_event_count": {
             "baseline": {
               "count": 216,
@@ -29013,6 +29490,38 @@
               "count_of_nulls": 0
             }
           },
+          "activity_comment_sample": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "Document coa uploaded for batch ADJ9318 | ADJ9318: AI-VERIFIED for Change Control Assessment | ADJ9318: Change Control Assessment status changed to Ready For Approval | ADJ9318: Certificate of Analysis report has been generated. | Batch ADJ9318: COA processing failed",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
+          "activity_comment_count": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "71",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "12",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
           "has_ai_verified": {
             "baseline": {
               "count": 216,
@@ -29042,6 +29551,150 @@
               "unique": 1,
               "top": "True",
               "freq": 232,
+              "count_of_nulls": 0
+            }
+          },
+          "batch_e_signed": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "True",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "False",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
+          "e_signer_user_id": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "217",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "nan",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
+          "e_signer_name": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "nan",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 1,
+              "top": "nan",
+              "freq": 232,
+              "count_of_nulls": 0
+            }
+          },
+          "current_assignee_name": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "Tanya Chakladar",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "None",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
+          "previous_assignee_name": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "Heliana Downing",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "None",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
+          "current_assignee_id": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "Eswar Vamsi Krishna",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "Madhu Konagandla",
+              "freq": 217,
+              "count_of_nulls": 0
+            }
+          },
+          "activity_commenter_names": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "nan",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 1,
+              "top": "nan",
+              "freq": 232,
+              "count_of_nulls": 0
+            }
+          },
+          "activity_mentioned_names": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "nan",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 1,
+              "top": "nan",
+              "freq": 232,
+              "count_of_nulls": 0
+            }
+          },
+          "hitl_reviewer_name": {
+            "baseline": {
+              "count": 216,
+              "unique": 1,
+              "top": "Tanya Chakladar",
+              "freq": 216,
+              "count_of_nulls": 0
+            },
+            "sample": {
+              "count": 232,
+              "unique": 2,
+              "top": "None",
+              "freq": 217,
               "count_of_nulls": 0
             }
           },
@@ -29076,6 +29729,7 @@
   "cca_submissionId_js_distance": 0.8326,
   "em_lotNo_js_distance": 0.8326,
   "em_mediaName_js_distance": 0.8326,
+  "e_signer_user_id_js_distance": 0.8326,
   "material_id_js_distance": 0.8273,
   "plant_id_js_distance": 0.8273,
   "batch_number_js_distance": 0.8273,
@@ -29088,6 +29742,13 @@
   "last_activity_timestamp_js_distance": 0.7558,
   "activity_categories_seen_js_distance": 0.7558,
   "activity_field_names_seen_js_distance": 0.7558,
+  "activity_comment_sample_js_distance": 0.7558,
+  "activity_comment_count_js_distance": 0.7558,
+  "batch_e_signed_js_distance": 0.7558,
+  "current_assignee_name_js_distance": 0.7558,
+  "previous_assignee_name_js_distance": 0.7558,
+  "current_assignee_id_js_distance": 0.7558,
+  "hitl_reviewer_name_js_distance": 0.7558,
   "row_process_order_js_distance": 0.5967,
   "row_inspection_lot_js_distance": 0.5786,
   "row_material_js_distance": 0.4213,
@@ -29120,8 +29781,13 @@
   "first_feedback_at_js_distance": 0.0,
   "last_feedback_at_js_distance": 0.0,
   "feedback_actions_js_distance": 0.0,
+  "feedback_text_sample_js_distance": 0.0,
+  "feedback_text_count_js_distance": 0.0,
   "has_ai_verified_js_distance": 0.0,
   "has_failed_js_distance": 0.0,
+  "e_signer_name_js_distance": 0.0,
+  "activity_commenter_names_js_distance": 0.0,
+  "activity_mentioned_names_js_distance": 0.0,
   "DataDrift_maxJensen-ShannonDistance": 0.8326,
   "DataDrift_maxJensen-ShannonDistanceFeature": "businessKey",
   "DataDrift_minJensen-ShannonDistance": 0.0,
@@ -29175,13 +29841,26 @@
   "first_feedback_at_kl_divergence": 0.0,
   "last_feedback_at_kl_divergence": 0.0,
   "feedback_actions_kl_divergence": 0.0,
+  "feedback_text_sample_kl_divergence": 0.0,
+  "feedback_text_count_kl_divergence": 0.0,
   "activity_event_count_kl_divergence": 1.8033,
   "first_activity_timestamp_kl_divergence": 1.8033,
   "last_activity_timestamp_kl_divergence": 1.8033,
   "activity_categories_seen_kl_divergence": 1.8033,
   "activity_field_names_seen_kl_divergence": 1.8033,
+  "activity_comment_sample_kl_divergence": 1.8033,
+  "activity_comment_count_kl_divergence": 1.8033,
   "has_ai_verified_kl_divergence": 0.0,
   "has_failed_kl_divergence": 0.0,
+  "batch_e_signed_kl_divergence": 1.8033,
+  "e_signer_user_id_kl_divergence": 0.0,
+  "e_signer_name_kl_divergence": 0.0,
+  "current_assignee_name_kl_divergence": 1.8033,
+  "previous_assignee_name_kl_divergence": 1.8033,
+  "current_assignee_id_kl_divergence": 1.8033,
+  "activity_commenter_names_kl_divergence": 0.0,
+  "activity_mentioned_names_kl_divergence": 0.0,
+  "hitl_reviewer_name_kl_divergence": 1.8033,
   "cm_term_kl_divergence": 0.039,
   "DataDrift_maxKullback-LeiblerDivergence": 1.8033,
   "DataDrift_maxKullback-LeiblerDivergenceFeature": "batchId",
@@ -29247,6 +29926,10 @@
         0.0,
         0.0,
         0.0,
+        0.0,
+        0.0,
+        2.561617,
+        2.561617,
         2.561617,
         2.561617,
         2.561617,
@@ -29254,6 +29937,15 @@
         2.561617,
         0.0,
         0.0,
+        2.561617,
+        2.561617,
+        0.0,
+        2.561617,
+        2.561617,
+        2.561617,
+        0.0,
+        0.0,
+        2.561617,
         0.110846,
         0.110846
       ],
@@ -29307,6 +29999,10 @@
         0.0,
         0.0,
         0.0,
+        0.0,
+        0.0,
+        0.7558,
+        0.7558,
         0.7558,
         0.7558,
         0.7558,
@@ -29314,6 +30010,15 @@
         0.7558,
         0.0,
         0.0,
+        0.7558,
+        0.8326,
+        0.0,
+        0.7558,
+        0.7558,
+        0.7558,
+        0.0,
+        0.0,
+        0.7558,
         0.1099,
         0
       ]
@@ -29368,13 +30073,26 @@
       "first_feedback_at",
       "last_feedback_at",
       "feedback_actions",
+      "feedback_text_sample",
+      "feedback_text_count",
       "activity_event_count",
       "first_activity_timestamp",
       "last_activity_timestamp",
       "activity_categories_seen",
       "activity_field_names_seen",
+      "activity_comment_sample",
+      "activity_comment_count",
       "has_ai_verified",
       "has_failed",
+      "batch_e_signed",
+      "e_signer_user_id",
+      "e_signer_name",
+      "current_assignee_name",
+      "previous_assignee_name",
+      "current_assignee_id",
+      "activity_commenter_names",
+      "activity_mentioned_names",
+      "hitl_reviewer_name",
       "cm_term",
       "ai_overall_status"
     ]
@@ -29435,6 +30153,10 @@
         0.0,
         0.0,
         0.0,
+        0.0,
+        0.0,
+        2.561617,
+        2.561617,
         2.561617,
         2.561617,
         2.561617,
@@ -29442,6 +30164,15 @@
         2.561617,
         0.0,
         0.0,
+        2.561617,
+        2.561617,
+        0.0,
+        2.561617,
+        2.561617,
+        2.561617,
+        0.0,
+        0.0,
+        2.561617,
         0.110846,
         0.110846
       ],
@@ -29495,6 +30226,10 @@
         0.0,
         0.0,
         0.0,
+        0.0,
+        0.0,
+        0.7558,
+        0.7558,
         0.7558,
         0.7558,
         0.7558,
@@ -29502,6 +30237,15 @@
         0.7558,
         0.0,
         0.0,
+        0.7558,
+        0.8326,
+        0.0,
+        0.7558,
+        0.7558,
+        0.7558,
+        0.0,
+        0.0,
+        0.7558,
         0.1099,
         0
       ]
@@ -29556,13 +30300,26 @@
       "first_feedback_at",
       "last_feedback_at",
       "feedback_actions",
+      "feedback_text_sample",
+      "feedback_text_count",
       "activity_event_count",
       "first_activity_timestamp",
       "last_activity_timestamp",
       "activity_categories_seen",
       "activity_field_names_seen",
+      "activity_comment_sample",
+      "activity_comment_count",
       "has_ai_verified",
       "has_failed",
+      "batch_e_signed",
+      "e_signer_user_id",
+      "e_signer_name",
+      "current_assignee_name",
+      "previous_assignee_name",
+      "current_assignee_id",
+      "activity_commenter_names",
+      "activity_mentioned_names",
+      "hitl_reviewer_name",
       "cm_term",
       "ai_overall_status"
     ]
@@ -29771,6 +30528,22 @@
           0.0
         ],
         [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
           2.561617,
           0.7558
         ],
@@ -29797,6 +30570,42 @@
         [
           0.0,
           0.0
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.8326
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          2.561617,
+          0.7558
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          2.561617,
+          0.7558
         ],
         [
           0.110846,
@@ -29811,12 +30620,31 @@
   },
   "reviewer_stats_table": [
     {
+      "Reviewer": "Team",
+      "Volume": 232,
+      "Rejection Rate": 0.0,
+      "vs Team": 0
+    },
+    {
       "Reviewer": "USER-251.0",
       "Volume": 232,
       "Rejection Rate": 0.0,
       "vs Team": 0.0
     }
   ],
+  "reviewer_time_series": {
+    "USER-251.0": {
+      "dates": [
+        "2026-03-04"
+      ],
+      "rejection_rate": [
+        0.0
+      ],
+      "volume": [
+        232
+      ]
+    }
+  },
   "time_line_graph": {
     "title": "HITL rejection rate and volume over time",
     "x_axis_label": "Date",
@@ -29836,6 +30664,708 @@
       ]
     }
   },
+  "qa_feedback_samples": [
+    {
+      "businessKey": "ADE5350-BG-ROW172",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW171",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW170",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW169",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW168",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW167",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW166",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW165",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW164",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW163",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW174",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW188",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW189",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW190",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW215",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW214",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW213",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW212",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW211",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW210",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW209",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW208",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW207",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW206",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW205",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW204",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW203",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW202",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW201",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW200",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW199",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW198",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW197",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW196",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW195",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW194",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW193",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW192",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW191",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW162",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW161",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW160",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW131",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW128",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW127",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW126",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW125",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW124",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW123",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW122",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW121",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW120",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW119",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW118",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW117",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW116",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW115",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW114",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW113",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW112",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW111",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW110",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW109",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW108",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW107",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW106",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW105",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW104",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW129",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW130",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW1",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW132",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW158",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW157",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW156",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW155",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW154",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW153",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW152",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW151",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW150",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW149",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW148",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW147",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW159",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW146",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW144",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW143",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW142",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW141",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW140",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW139",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW138",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW137",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW136",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW135",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW134",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW133",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-BG-ROW145",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    },
+    {
+      "businessKey": "ADE5350-DA-SUMMARY",
+      "batchId": "ADE5350",
+      "hitl_reviewer_id": "USER-251.0",
+      "activity_comment_sample": "ADE5350: CDP Deviation Assessment report has been generated. | ADE5350: AI-VERIFIED for CDP Deviation Assessment | ADE5350: CDP Deviation Assessment status changed to Ready For Approval | Batch ADE5350: COA processing failed | Batch ADE5350: CCA processing failed",
+      "feedback_text_sample": "nan"
+    }
+  ],
   "generic_table": [
     {
       "Metric": "Max CSI",
@@ -29851,6 +31381,11 @@
       "Metric": "Score PSI",
       "Feature": "ai_overall_status",
       "Value": 0.110846
+    },
+    {
+      "Metric": "Team Avg Rejection Rate",
+      "Feature": "Reviewer Analysis",
+      "Value": 0.0
     },
     {
       "Metric": "Reviewer USER-251.0 Rejection Rate",

@@ -19,6 +19,7 @@ Operations:
 
 import json
 import os
+import re
 import glob
 import pandas as pd
 from datetime import timedelta, timezone
@@ -309,6 +310,66 @@ def process_real_claude_responses(directory="AI Responses"):
 
     return pd.DataFrame(flattened_rows)
 
+# Comment/text sample limits for enrich_batch_dimensions (tunable)
+ACTIVITY_COMMENT_LAST_N = 5
+ACTIVITY_SNIPPET_MAX_CHARS = 300
+ACTIVITY_COMMENT_SAMPLE_MAX_CHARS = 1500
+FEEDBACK_TEXT_LAST_N = 5
+FEEDBACK_SNIPPET_MAX_CHARS = 300
+FEEDBACK_TEXT_SAMPLE_MAX_CHARS = 1500
+
+
+def _parse_commenter_name(message):
+    """Extract commenter name from message like 'Rana Atul commented in Comments'. Returns None if no match."""
+    if not message or not isinstance(message, str):
+        return None
+    m = re.match(r'^(.+?)\s+commented in Comments\s*$', message.strip())
+    return m.group(1).strip() if m else None
+
+
+def _parse_reassigned_to(message):
+    """Extract assignee name from message like 'Reassigned to Rana Atul'. Returns None if no match."""
+    if not message or not isinstance(message, str):
+        return None
+    m = re.search(r'Reassigned to (.+?)(?:\s*$|\.)', message.strip())
+    return m.group(1).strip() if m else None
+
+
+def _parse_mentioned_names(new_value):
+    """Extract unique names from @[Full Name] mentions in comment body. Returns list of strings."""
+    if not new_value or not isinstance(new_value, str):
+        return []
+    names = re.findall(r'@\[([^\]]+)\]', new_value)
+    return list(dict.fromkeys(n.strip() for n in names if n and n.strip()))
+
+
+def _activity_comment_sample(grp):
+    """Build activity_comment_sample from last N rows: message or truncated new_value, joined and truncated."""
+    grp = grp.sort_values('timestamp', na_position='last').tail(ACTIVITY_COMMENT_LAST_N)
+    snippets = []
+    for _, r in grp.iterrows():
+        msg = (r.get('message') if pd.notna(r.get('message')) else '') or ''
+        newv = (r.get('new_value') if pd.notna(r.get('new_value')) else '') or ''
+        raw = (msg if len(str(msg)) <= ACTIVITY_SNIPPET_MAX_CHARS else str(msg)[:ACTIVITY_SNIPPET_MAX_CHARS] + '...') if msg else (str(newv)[:ACTIVITY_SNIPPET_MAX_CHARS] + ('...' if len(str(newv)) > ACTIVITY_SNIPPET_MAX_CHARS else ''))
+        if raw.strip():
+            snippets.append(raw)
+    s = ' | '.join(snippets)
+    return s[:ACTIVITY_COMMENT_SAMPLE_MAX_CHARS] if len(s) > ACTIVITY_COMMENT_SAMPLE_MAX_CHARS else s
+
+
+def _feedback_text_sample(grp):
+    """Build feedback_text_sample from last N rows: truncated feedback values joined."""
+    grp = grp.sort_values('created_at', na_position='last').tail(FEEDBACK_TEXT_LAST_N)
+    snippets = []
+    for _, r in grp.iterrows():
+        fb = (r.get('feedback') if pd.notna(r.get('feedback')) else '') or ''
+        s = str(fb)[:FEEDBACK_SNIPPET_MAX_CHARS] + ('...' if len(str(fb)) > FEEDBACK_SNIPPET_MAX_CHARS else '')
+        if s.strip():
+            snippets.append(s)
+    joined = ' | '.join(snippets)
+    return joined[:FEEDBACK_TEXT_SAMPLE_MAX_CHARS] if len(joined) > FEEDBACK_TEXT_SAMPLE_MAX_CHARS else joined
+
+
 def enrich_batch_dimensions(df_merged, activity_file, feedback_file):
     """Add batch-level aggregates from activity log and ai_feedback (one row per AI record; batch fields repeated)."""
     try:
@@ -320,6 +381,18 @@ def enrich_batch_dimensions(df_merged, activity_file, feedback_file):
     if 'batch_number' in df_act.columns: df_act = df_act.rename(columns={'batch_number': 'batchId'})
     if 'batch_id' in df_fb.columns: df_fb = df_fb.rename(columns={'batch_id': 'batchId'})
 
+    # Ensure text columns exist for comment sampling and activity parsing
+    for c in ('message', 'new_value', 'old_value'):
+        if c not in df_act.columns: df_act[c] = ''
+    df_act['message'] = df_act['message'].fillna('').astype(str)
+    df_act['new_value'] = df_act['new_value'].fillna('').astype(str)
+    df_act['old_value'] = df_act['old_value'].fillna('').astype(str)
+    if 'timestamp' not in df_act.columns: df_act['timestamp'] = pd.NaT
+    if 'e_signed' not in df_act.columns: df_act['e_signed'] = False
+    if 'user_id' not in df_act.columns: df_act['user_id'] = pd.NA
+    if 'category' not in df_act.columns: df_act['category'] = ''
+    if 'field_name' not in df_act.columns: df_act['field_name'] = ''
+
     # Activity aggregates per batch
     act_agg = df_act.groupby('batchId').agg(
         activity_event_count=('id', 'count'),
@@ -329,13 +402,77 @@ def enrich_batch_dimensions(df_merged, activity_file, feedback_file):
     act_cats = df_act.groupby('batchId')['category'].apply(lambda x: '|'.join(sorted(x.astype(str).unique()))).reset_index().rename(columns={'category': 'activity_categories_seen'})
     act_fields = df_act.groupby('batchId')['field_name'].apply(lambda x: '|'.join(sorted(x.astype(str).unique()))).reset_index().rename(columns={'field_name': 'activity_field_names_seen'})
     act_agg = act_agg.merge(act_cats, on='batchId', how='left').merge(act_fields, on='batchId', how='left')
+    # Activity comment sample and count
+    act_comment = df_act.groupby('batchId', group_keys=False).apply(_activity_comment_sample, include_groups=False).reset_index().rename(columns={0: 'activity_comment_sample'})
+    act_agg = act_agg.merge(act_comment, on='batchId', how='left')
+    act_count = df_act.groupby('batchId', group_keys=False).apply(
+        lambda g: ((g['message'].astype(str).str.strip() != '') | (g['new_value'].astype(str).str.strip() != '')).sum(),
+        include_groups=False
+    ).reset_index().rename(columns={0: 'activity_comment_count'})
+    act_agg = act_agg.merge(act_count, on='batchId', how='left')
+    act_agg['activity_comment_count'] = act_agg['activity_comment_count'].fillna(0).astype(int)
     ai_verified_counts = df_act[df_act['category'] == 'ai-verified'].groupby('batchId').size()
     failed_counts = df_act[df_act['category'] == 'failed'].groupby('batchId').size()
     act_agg['has_ai_verified'] = act_agg['batchId'].map(lambda b: ai_verified_counts.get(b, 0) > 0)
     act_agg['has_failed'] = act_agg['batchId'].map(lambda b: failed_counts.get(b, 0) > 0)
 
+    # ---- Batch-level e-sign tracking ----
+    batch_has_e_signed = (df_act['e_signed'] == True) | (df_act['category'] == 'e-sign-successful')
+    e_signed_batches = df_act.loc[batch_has_e_signed].groupby('batchId').size()
+    act_agg['batch_e_signed'] = act_agg['batchId'].map(lambda b: e_signed_batches.get(b, 0) > 0)
+    esign_events = df_act[df_act['category'] == 'e-sign-successful'].sort_values('timestamp')
+    if not esign_events.empty:
+        latest_esign = esign_events.groupby('batchId', as_index=False).last()
+        act_agg = act_agg.merge(
+            latest_esign[['batchId', 'user_id', 'message']].rename(columns={'user_id': 'e_signer_user_id', 'message': '_esign_message'}),
+            on='batchId', how='left'
+        )
+        # e_signer_name: e-sign message rarely contains name; leave null unless we add a lookup later
+        act_agg['e_signer_name'] = None
+        act_agg = act_agg.drop(columns=['_esign_message'], errors='ignore')
+    else:
+        act_agg['e_signer_user_id'] = pd.NA
+        act_agg['e_signer_name'] = None
+
+    # ---- Batch assignee: current and previous from latest batch_assignee event ----
+    assignee_events = df_act[df_act['field_name'] == 'batch_assignee'].sort_values('timestamp')
+    if not assignee_events.empty:
+        latest_assignee = assignee_events.groupby('batchId', as_index=False).last()
+        latest_assignee = latest_assignee.rename(columns={'new_value': 'current_assignee_name', 'old_value': 'previous_assignee_name'})[['batchId', 'current_assignee_name', 'previous_assignee_name']]
+        act_agg = act_agg.merge(latest_assignee, on='batchId', how='left')
+    else:
+        act_agg['current_assignee_name'] = None
+        act_agg['previous_assignee_name'] = None
+    if 'batch_assignee_id' in df_act['field_name'].values:
+        assignee_id_events = df_act[df_act['field_name'] == 'batch_assignee_id'].sort_values('timestamp')
+        if not assignee_id_events.empty:
+            latest_assignee_id = assignee_id_events.groupby('batchId', as_index=False).last()[['batchId', 'new_value']].rename(columns={'new_value': 'current_assignee_id'})
+            act_agg = act_agg.merge(latest_assignee_id, on='batchId', how='left')
+    if 'current_assignee_id' not in act_agg.columns:
+        act_agg['current_assignee_id'] = None
+
+    # ---- Activity commenter names (from "X commented in Comments") and @mentions ----
+    user_comment_df = df_act[df_act['category'] == 'user-comment'].copy()
+    if not user_comment_df.empty:
+        user_comment_df['_commenter'] = user_comment_df['message'].map(_parse_commenter_name)
+        commenters = user_comment_df[user_comment_df['_commenter'].notna()].groupby('batchId')['_commenter'].apply(lambda x: '|'.join(sorted(set(str(n) for n in x)))).reset_index().rename(columns={'_commenter': 'activity_commenter_names'})
+        act_agg = act_agg.merge(commenters, on='batchId', how='left')
+        all_mentioned = []
+        for _, r in user_comment_df.iterrows():
+            for name in _parse_mentioned_names(r.get('new_value')):
+                all_mentioned.append({'batchId': r['batchId'], '_mentioned': name})
+        if all_mentioned:
+            mentioned_df = pd.DataFrame(all_mentioned).drop_duplicates().groupby('batchId')['_mentioned'].apply(lambda x: '|'.join(sorted(set(x)))).reset_index().rename(columns={'_mentioned': 'activity_mentioned_names'})
+            act_agg = act_agg.merge(mentioned_df, on='batchId', how='left')
+    if 'activity_commenter_names' not in act_agg.columns:
+        act_agg['activity_commenter_names'] = None
+    if 'activity_mentioned_names' not in act_agg.columns:
+        act_agg['activity_mentioned_names'] = None
+
     # Feedback aggregates per batch
     if not df_fb.empty:
+        if 'feedback' not in df_fb.columns: df_fb['feedback'] = ''
+        df_fb['feedback'] = df_fb['feedback'].fillna('').astype(str)
         fb_agg = df_fb.groupby('batchId').agg(
             feedback_event_count=('id', 'count'),
             first_feedback_at=('created_at', 'min'),
@@ -343,8 +480,16 @@ def enrich_batch_dimensions(df_merged, activity_file, feedback_file):
         ).reset_index()
         fb_actions = df_fb.groupby('batchId')['action'].apply(lambda x: '|'.join(sorted(x.astype(str).unique()))).reset_index().rename(columns={'action': 'feedback_actions'})
         fb_agg = fb_agg.merge(fb_actions, on='batchId', how='left')
+        fb_text = df_fb.groupby('batchId', group_keys=False).apply(_feedback_text_sample, include_groups=False).reset_index().rename(columns={0: 'feedback_text_sample'})
+        fb_agg = fb_agg.merge(fb_text, on='batchId', how='left')
+        fb_count = df_fb.groupby('batchId')['feedback'].apply(lambda x: (x.astype(str).str.strip() != '').sum()).reset_index()
+        fb_count.columns = ['batchId', 'feedback_text_count']
+        fb_agg = fb_agg.merge(fb_count, on='batchId', how='left')
+        fb_agg['feedback_text_count'] = fb_agg['feedback_text_count'].fillna(0).astype(int)
         df_merged = df_merged.merge(fb_agg, on='batchId', how='left')
     df_merged = df_merged.merge(act_agg, on='batchId', how='left')
+    # QA reviewer name: use current assignee as proxy (assignee is often the QA reviewer who applied ground truth)
+    df_merged['hitl_reviewer_name'] = df_merged.get('current_assignee_name')
     return df_merged
 
 def map_m2_confusion_term(row, m2_config):
