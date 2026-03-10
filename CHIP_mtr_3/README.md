@@ -9,8 +9,13 @@ Tracks HITL reviewer calibration drift, intervention patterns, and decision stab
 ## Required Assets
 - **Baseline Data:** Historical records used to establish expected behavior.
 - **Comparator Data:** Recent production records used for current evaluation.
-- **Schema Asset:** Parsed by `infer.validate_schema()` to map score/label/predictor roles.
 - **Test Results Output:** `CHIP_mtr_3_test_results.json` written by local smoke runs.
+
+## ModelOp UI File Roles
+- Set `CHIP_mtr3_hitl_stability.py` as both **Model Source** and **Primary Source**.
+- Set `README.md` as **Readme File**.
+- Set `required_assets.json` as the required-assets specification file.
+- Do not assign `*_test_results.json`, `*_error.txt`, `*.dmn`, `modelop_schema.json`, or `blank_schema_asset.csv` as runtime input data assets.
 
 ## Runtime Initialization Contract
 - Entry points are `init(job_json)` and `metrics(df_baseline, df_sample)`.

@@ -6,9 +6,5 @@
     {
         "role": "comparator_data",
         "description": "Recent Production Comparator Data required for evaluation."
-    },
-    {
-        "role": "schema",
-        "description": "Blank schema asset to define input/output roles."
     }
 ]
