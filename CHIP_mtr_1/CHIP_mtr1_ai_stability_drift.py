@@ -172,23 +172,23 @@ def init(job_json: dict) -> None:
     Initializes the job, extracts group information, and validates schema fail-fast.
     """
     logger = utils.configure_logger()
-    global JOB
-    global GROUP
+    # global JOB
+    # global GROUP
     
-    # Extract job_json and validate schema using the attached UI asset
-    JOB = job_json
-    infer.validate_schema(job_json)
+    # # Extract job_json and validate schema using the attached UI asset
+    # JOB = job_json
+    # infer.validate_schema(job_json)
     
-    # Extract GROUP specifically for stability analysis
-    try:
-        job = json.loads(job_json.get("rawJson", "{}"))
-        GROUP = job.get('referenceModel', {}).get('group', None)
-    except Exception as e:
-        logger.warning(f"Could not extract GROUP from rawJson: {e}")
-        GROUP = None
+    # # Extract GROUP specifically for stability analysis
+    # try:
+    #     job = json.loads(job_json.get("rawJson", "{}"))
+    #     GROUP = job.get('referenceModel', {}).get('group', None)
+    # except Exception as e:
+    #     logger.warning(f"Could not extract GROUP from rawJson: {e}")
+    #     GROUP = None
 
 # modelop.metrics
-def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
+def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: ignore
     """
     Computes combined stability and data drift metrics.
 

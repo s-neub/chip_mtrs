@@ -349,12 +349,12 @@ def init(job_json: dict) -> None:
         job_json (dict): job JSON
     """
     logger = utils.configure_logger()
-    global JOB
-    global GROUP
+    # global JOB
+    # global GROUP
     
-    # Extract job_json and validate schema using the attached UI asset
-    JOB = job_json
-    infer.validate_schema(job_json)
+    # # Extract job_json and validate schema using the attached UI asset
+    # JOB = job_json
+    # infer.validate_schema(job_json)
     
     # Extract GROUP specifically for stability analysis
     # Uses rawJson to safely traverse the underlying model representation
@@ -366,7 +366,7 @@ def init(job_json: dict) -> None:
         GROUP = None
 
 # modelop.metrics
-def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
+def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: ignore
     """
     Computes stability and drift for HITL. Yields monitor-specific chart/table keys.
     Reviewer/QA summary and date windows are in summary table rows.

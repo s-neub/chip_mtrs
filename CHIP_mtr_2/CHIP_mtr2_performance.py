@@ -136,12 +136,12 @@ def init(job_json: dict) -> None:
     Initializes the job and validates schema fail-fast using the UI asset.
     """
     logger = utils.configure_logger()
-    global JOB
-    JOB = job_json
-    infer.validate_schema(job_json)
+    # global JOB
+    # JOB = job_json
+    # infer.validate_schema(job_json)
 
 # modelop.metrics
-def metrics(dataframe: pd.DataFrame) -> dict:
+def metrics(dataframe: pd.DataFrame) -> dict: #type: ignore
     """
     Computes binary classification metrics. Yields only monitor-specific chart/table
     keys. Scalars and dates are included as summary table rows.
