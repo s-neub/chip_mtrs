@@ -10,6 +10,18 @@ Evaluates AI-vs-HITL concordance using classification metrics and class balance 
 - **Baseline Data:** Historical records used to establish expected behavior.
 - **Comparator Data:** Recent production records used for current evaluation.
 - **Schema Asset:** Parsed by `infer.validate_schema()` to map score/label/predictor roles.
+- **Test Results Output:** `CHIP_mtr_2_test_results.json` written by local smoke runs.
+
+## Runtime Initialization Contract
+- Entry points are `init(job_json)` and `metrics(dataframe)`.
+- `init()` stores the runtime `JOB` object, validates schema via `infer.validate_schema(job_json)`, and parses `rawJson.jobParameters` with defaults.
+- Optional job parameters:
+  - `AI_FAIL_VALUES` (default: `["FAIL"]`) for AI predicted positive class mapping.
+  - `HITL_POSITIVE_VALUES` (default: `["REJECTED", "REPROCESS", "PENDING"]`) for HITL positive class mapping.
+- Runtime assets in this folder:
+  - baseline: `CHIP_mtr_2_baseline.json` / `CHIP_mtr_2_baseline.csv`
+  - comparator (used by `metrics`): `CHIP_mtr_2_comparator.json` / `CHIP_mtr_2_comparator.csv`
+  - test results: `CHIP_mtr_2_test_results.json`
 
 ## UI Output Interpretation
 - **Generic Table:** Confusion entries, key scores (accuracy/precision/recall/F1/AUC), reviewer/activity totals, date window.

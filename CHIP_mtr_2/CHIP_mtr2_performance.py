@@ -19,6 +19,9 @@ import modelop.utils as utils
 logger = utils.configure_logger()
 
 JOB = {}
+JOB_PARAMETERS = {}
+M2_AI_FAIL_VALUES = {"FAIL"}
+M2_HITL_POSITIVE_VALUES = {"REJECTED", "REPROCESS", "PENDING"}
 
 
 def _to_native(x):
@@ -30,6 +33,21 @@ def _to_native(x):
     if isinstance(x, dict):
         return {k: _to_native(v) for k, v in x.items()}
     return x
+
+
+def _normalized_value_set(raw_values, default_values):
+    """Normalize job-parameter values into a case-insensitive string set."""
+    if raw_values is None:
+        return {str(v).strip().upper() for v in default_values}
+    if isinstance(raw_values, str):
+        values = [v.strip() for v in raw_values.split(",") if v.strip()]
+    elif isinstance(raw_values, (list, tuple, set)):
+        values = [str(v).strip() for v in raw_values if str(v).strip()]
+    else:
+        values = [str(raw_values).strip()]
+    if not values:
+        values = [str(v).strip() for v in default_values]
+    return {v.upper() for v in values}
 
 
 def _get_date_range(df: pd.DataFrame):
@@ -135,10 +153,33 @@ def init(job_json: dict) -> None:
     """
     Initializes the job and validates schema fail-fast using the UI asset.
     """
-    logger = utils.configure_logger()
-    # global JOB
-    # JOB = job_json
-    # infer.validate_schema(job_json)
+    global JOB
+    global JOB_PARAMETERS
+    global M2_AI_FAIL_VALUES
+    global M2_HITL_POSITIVE_VALUES
+
+    JOB = job_json or {}
+
+    try:
+        infer.validate_schema(JOB)
+    except Exception as e:
+        logger.warning(f"Schema validation skipped or failed in init: {e}")
+
+    try:
+        job = json.loads(JOB.get("rawJson", "{}"))
+    except Exception as e:
+        logger.warning(f"Could not parse rawJson in init. Falling back to defaults: {e}")
+        job = {}
+
+    JOB_PARAMETERS = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    M2_AI_FAIL_VALUES = _normalized_value_set(
+        JOB_PARAMETERS.get("AI_FAIL_VALUES"),
+        default_values=["FAIL"]
+    )
+    M2_HITL_POSITIVE_VALUES = _normalized_value_set(
+        JOB_PARAMETERS.get("HITL_POSITIVE_VALUES"),
+        default_values=["REJECTED", "REPROCESS", "PENDING"]
+    )
 
 # modelop.metrics
 def metrics(dataframe: pd.DataFrame) -> dict: #type: ignore
@@ -162,13 +203,13 @@ def metrics(dataframe: pd.DataFrame) -> dict: #type: ignore
     # Map AI Score (In-place to respect the schema mappings made in the UI)
     if 'ai_overall_status' in df_eval.columns:
         df_eval['ai_overall_status'] = df_eval['ai_overall_status'].apply(
-            lambda x: 1 if str(x).strip().upper() == 'FAIL' else 0
+            lambda x: 1 if str(x).strip().upper() in M2_AI_FAIL_VALUES else 0
         )
     
     # Map Human Label
     if 'hitl_qa_decision' in df_eval.columns:
         df_eval['hitl_qa_decision'] = df_eval['hitl_qa_decision'].apply(
-            lambda x: 1 if str(x).strip().upper() in ['REJECTED', 'REPROCESS', 'PENDING'] else 0
+            lambda x: 1 if str(x).strip().upper() in M2_HITL_POSITIVE_VALUES else 0
         )
 
     # Initialize ModelEvaluator with our preprocessed dataframe

@@ -21,6 +21,9 @@ logger = utils.configure_logger()
 
 JOB = {}
 GROUP = None
+JOB_PARAMETERS = {}
+M3_AI_FAIL_VALUES = {"FAIL"}
+M3_HITL_POSITIVE_VALUES = {"REJECTED", "REPROCESS", "PENDING"}
 
 
 def _to_native(x):
@@ -32,6 +35,21 @@ def _to_native(x):
     if isinstance(x, dict):
         return {k: _to_native(v) for k, v in x.items()}
     return x
+
+
+def _normalized_value_set(raw_values, default_values):
+    """Normalize job-parameter values into a case-insensitive string set."""
+    if raw_values is None:
+        return {str(v).strip().upper() for v in default_values}
+    if isinstance(raw_values, str):
+        values = [v.strip() for v in raw_values.split(",") if v.strip()]
+    elif isinstance(raw_values, (list, tuple, set)):
+        values = [str(v).strip() for v in raw_values if str(v).strip()]
+    else:
+        values = [str(raw_values).strip()]
+    if not values:
+        values = [str(v).strip() for v in default_values]
+    return {v.upper() for v in values}
 
 
 def _pretty_feature_name(name):
@@ -348,22 +366,43 @@ def init(job_json: dict) -> None:
     Args:
         job_json (dict): job JSON
     """
-    logger = utils.configure_logger()
-    # global JOB
-    # global GROUP
-    
-    # # Extract job_json and validate schema using the attached UI asset
-    # JOB = job_json
-    # infer.validate_schema(job_json)
-    
-    # Extract GROUP specifically for stability analysis
-    # Uses rawJson to safely traverse the underlying model representation
+    global JOB
+    global GROUP
+    global JOB_PARAMETERS
+    global M3_AI_FAIL_VALUES
+    global M3_HITL_POSITIVE_VALUES
+    global M3_TOP_N_FEATURES
+
+    JOB = job_json or {}
+
     try:
-        job = json.loads(job_json.get("rawJson", "{}"))
-        GROUP = job.get('referenceModel', {}).get('group', None)
+        infer.validate_schema(JOB)
     except Exception as e:
-        logger.warning(f"Could not extract GROUP from rawJson: {e}")
-        GROUP = None
+        logger.warning(f"Schema validation skipped or failed in init: {e}")
+
+    try:
+        job = json.loads(JOB.get("rawJson", "{}"))
+    except Exception as e:
+        logger.warning(f"Could not parse rawJson in init. Falling back to defaults: {e}")
+        job = {}
+
+    JOB_PARAMETERS = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    GROUP = job.get("referenceModel", {}).get("group", None)
+
+    top_n = JOB_PARAMETERS.get("M3_TOP_N_FEATURES", M3_TOP_N_FEATURES)
+    try:
+        M3_TOP_N_FEATURES = max(1, int(top_n))
+    except Exception:
+        logger.warning(f"Invalid M3_TOP_N_FEATURES={top_n}. Using default {M3_TOP_N_FEATURES}.")
+
+    M3_AI_FAIL_VALUES = _normalized_value_set(
+        JOB_PARAMETERS.get("AI_FAIL_VALUES"),
+        default_values=["FAIL"]
+    )
+    M3_HITL_POSITIVE_VALUES = _normalized_value_set(
+        JOB_PARAMETERS.get("HITL_POSITIVE_VALUES"),
+        default_values=["REJECTED", "REPROCESS", "PENDING"]
+    )
 
 # modelop.metrics
 def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: ignore
@@ -385,13 +424,13 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: 
         for df in (df_baseline, df_sample):
             if "ai_overall_status" in df.columns:
                 df["ai_overall_status"] = df["ai_overall_status"].apply(
-                    lambda x: 1.0 if str(x).strip().upper() == "FAIL" else 0.0
+                    lambda x: 1.0 if str(x).strip().upper() in M3_AI_FAIL_VALUES else 0.0
                 )
     if "hitl_qa_decision" in df_baseline.columns and not pd.api.types.is_numeric_dtype(df_baseline["hitl_qa_decision"]):
         for df in (df_baseline, df_sample):
             if "hitl_qa_decision" in df.columns:
                 df["hitl_qa_decision"] = df["hitl_qa_decision"].apply(
-                    lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+                    lambda x: 1.0 if str(x).strip().upper() in M3_HITL_POSITIVE_VALUES else 0.0
                 )
 
     # 1. Initialize & Compute Stability Metrics (PSI, CSI)

@@ -10,6 +10,18 @@ Tracks AI output stability and drift between baseline and comparator windows.
 - **Baseline Data:** Historical records used to establish expected behavior.
 - **Comparator Data:** Recent production records used for current evaluation.
 - **Schema Asset:** Parsed by `infer.validate_schema()` to map score/label/predictor roles.
+- **Test Results Output:** `CHIP_mtr_1_test_results.json` written by local smoke runs.
+
+## Runtime Initialization Contract
+- Entry points are `init(job_json)` and `metrics(df_baseline, df_sample)`.
+- `init()` stores the runtime `JOB` object, validates schema via `infer.validate_schema(job_json)`, and parses `rawJson.jobParameters` with defaults.
+- Optional job parameters:
+  - `AI_FAIL_VALUES` (default: `["FAIL"]`) for converting AI status to numeric score.
+  - `M1_TOP_N_FEATURES` (default: `20`) to cap plotted feature count.
+- Runtime assets in this folder:
+  - baseline: `CHIP_mtr_1_baseline.json` / `CHIP_mtr_1_baseline.csv`
+  - comparator: `CHIP_mtr_1_comparator.json` / `CHIP_mtr_1_comparator.csv`
+  - test results: `CHIP_mtr_1_test_results.json`
 
 ## UI Output Interpretation
 - **Generic Table:** High-level summary (largest/smallest CSI, overall PSI, date windows).

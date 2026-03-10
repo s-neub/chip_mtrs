@@ -21,6 +21,8 @@ logger = utils.configure_logger()
 
 JOB = {}
 GROUP = None
+JOB_PARAMETERS = {}
+M1_AI_FAIL_VALUES = {"FAIL"}
 
 
 def _to_native(x):
@@ -70,6 +72,21 @@ M1_ALLOWED_KEYS = (
 )
 # Limit bar/scatter to top N features for aggregate summary
 M1_TOP_N_FEATURES = 20
+
+
+def _normalized_value_set(raw_values, default_values):
+    """Normalize job-parameter values into a case-insensitive string set."""
+    if raw_values is None:
+        return {str(v).strip().upper() for v in default_values}
+    if isinstance(raw_values, str):
+        values = [v.strip() for v in raw_values.split(",") if v.strip()]
+    elif isinstance(raw_values, (list, tuple, set)):
+        values = [str(v).strip() for v in raw_values if str(v).strip()]
+    else:
+        values = [str(raw_values).strip()]
+    if not values:
+        values = [str(v).strip() for v in default_values]
+    return {v.upper() for v in values}
 
 
 def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
@@ -171,21 +188,38 @@ def init(job_json: dict) -> None:
     """
     Initializes the job, extracts group information, and validates schema fail-fast.
     """
-    logger = utils.configure_logger()
-    # global JOB
-    # global GROUP
-    
-    # # Extract job_json and validate schema using the attached UI asset
-    # JOB = job_json
-    # infer.validate_schema(job_json)
-    
-    # # Extract GROUP specifically for stability analysis
-    # try:
-    #     job = json.loads(job_json.get("rawJson", "{}"))
-    #     GROUP = job.get('referenceModel', {}).get('group', None)
-    # except Exception as e:
-    #     logger.warning(f"Could not extract GROUP from rawJson: {e}")
-    #     GROUP = None
+    global JOB
+    global GROUP
+    global JOB_PARAMETERS
+    global M1_TOP_N_FEATURES
+    global M1_AI_FAIL_VALUES
+
+    JOB = job_json or {}
+
+    try:
+        infer.validate_schema(JOB)
+    except Exception as e:
+        logger.warning(f"Schema validation skipped or failed in init: {e}")
+
+    try:
+        job = json.loads(JOB.get("rawJson", "{}"))
+    except Exception as e:
+        logger.warning(f"Could not parse rawJson in init. Falling back to defaults: {e}")
+        job = {}
+
+    JOB_PARAMETERS = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    GROUP = job.get("referenceModel", {}).get("group", None)
+
+    top_n = JOB_PARAMETERS.get("M1_TOP_N_FEATURES", M1_TOP_N_FEATURES)
+    try:
+        M1_TOP_N_FEATURES = max(1, int(top_n))
+    except Exception:
+        logger.warning(f"Invalid M1_TOP_N_FEATURES={top_n}. Using default {M1_TOP_N_FEATURES}.")
+
+    M1_AI_FAIL_VALUES = _normalized_value_set(
+        JOB_PARAMETERS.get("AI_FAIL_VALUES"),
+        default_values=["FAIL"]
+    )
 
 # modelop.metrics
 def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: ignore
@@ -212,7 +246,7 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: 
         for df in (df_baseline, df_sample):
             if "ai_overall_status" in df.columns:
                 df["ai_overall_status"] = df["ai_overall_status"].apply(
-                    lambda x: 1.0 if str(x).strip().upper() == "FAIL" else 0.0
+                    lambda x: 1.0 if str(x).strip().upper() in M1_AI_FAIL_VALUES else 0.0
                 )
 
     # 1. Initialize & Compute Stability Metrics (PSI, CSI)
