@@ -52,9 +52,85 @@ def _get_date_range(df: pd.DataFrame):
     return None, None
 
 
+def _compute_reviewer_stats(df: pd.DataFrame):
+    """
+    Compare single QA reviewer metrics to team. Group by hitl_reviewer_id; compute volume and rejection_rate;
+    team average is overall mean rejection rate; return list of {Reviewer, Volume, Rejection Rate, vs Team}.
+    """
+    if df is None or df.empty:
+        return []
+    if 'hitl_reviewer_id' not in df.columns or 'hitl_qa_decision' not in df.columns:
+        return []
+    df = df.copy()
+    df['hitl_reviewer_id'] = df['hitl_reviewer_id'].fillna('Unknown').astype(str)
+    if not pd.api.types.is_numeric_dtype(df['hitl_qa_decision']):
+        df['hitl_qa_decision'] = df['hitl_qa_decision'].apply(
+            lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+        )
+    team_avg = float(df['hitl_qa_decision'].mean())
+    grp = df.groupby('hitl_reviewer_id', as_index=False).agg(
+        Volume=('hitl_qa_decision', 'count'),
+        Rejection_Rate=('hitl_qa_decision', 'mean')
+    )
+    rows = []
+    for _, r in grp.iterrows():
+        vs_team = float(r['Rejection_Rate']) - team_avg
+        rows.append({
+            'Reviewer': _to_native(r['hitl_reviewer_id']),
+            'Volume': int(r['Volume']),
+            'Rejection Rate': _to_native(round(r['Rejection_Rate'], 4)),
+            'vs Team': _to_native(round(vs_team, 4))
+        })
+    return rows
+
+
+def _compute_time_series(df: pd.DataFrame):
+    """
+    Daily rejection rate and volume by date (from hitl_review_time or ai_verification_time).
+    Returns dict with time_line_graph payload: data1 = [[date_iso, rejection_rate], ...], data2 = [[date_iso, volume], ...].
+    """
+    if df is None or df.empty:
+        return None
+    date_col = None
+    for col in ['hitl_review_time', 'ai_verification_time', 'last_activity_timestamp', 'first_activity_timestamp']:
+        if col in df.columns:
+            date_col = col
+            break
+    if date_col is None or 'hitl_qa_decision' not in df.columns:
+        return None
+    df = df.copy()
+    df['_dt'] = pd.to_datetime(df[date_col], errors='coerce')
+    df = df.dropna(subset=['_dt'])
+    if df.empty:
+        return None
+    df['_date'] = df['_dt'].dt.date
+    if not pd.api.types.is_numeric_dtype(df['hitl_qa_decision']):
+        df['hitl_qa_decision'] = df['hitl_qa_decision'].apply(
+            lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+        )
+    daily = df.groupby('_date', as_index=False).agg(
+        rejection_rate=('hitl_qa_decision', 'mean'),
+        volume=('hitl_qa_decision', 'count')
+    ).sort_values('_date')
+    daily['_date_iso'] = daily['_date'].astype(str)
+    data1 = [[row['_date_iso'], _to_native(round(row['rejection_rate'], 4))] for _, row in daily.iterrows()]
+    data2 = [[row['_date_iso'], int(row['volume'])] for _, row in daily.iterrows()]
+    return {
+        'title': 'HITL rejection rate and volume over time',
+        'x_axis_label': 'Date',
+        'y_axis_label': 'Rejection Rate / Volume',
+        'data': {
+            'Rejection Rate': data1,
+            'Volume': data2
+        }
+    }
+
+
 def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
     """Build ModelOp chart/table/donut/pie payloads per Monitor Output Structure (HITL)."""
     out = {}
+    reviewer_stats = _compute_reviewer_stats(df_sample)
+    time_series = _compute_time_series(df_sample)
     categories, psi_vals, js_vals = [], [], []
     stab = result.get('stability')
     if stab and isinstance(stab, list) and len(stab) > 0 and 'values' in stab[0]:
@@ -112,6 +188,20 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         rows.append({'Metric': 'Score PSI', 'Feature': score_psi_key.replace('_PSI', ''), 'Value': _to_native(result[score_psi_key])})
     if not rows:
         rows.append({'Metric': 'Stability/Drift', 'Feature': '-', 'Value': '-'})
+    if reviewer_stats:
+        out['reviewer_stats_table'] = _to_native(reviewer_stats)
+        if 'hitl_qa_decision' in df_sample.columns and pd.api.types.is_numeric_dtype(df_sample['hitl_qa_decision']):
+            team_avg = float(df_sample['hitl_qa_decision'].mean())
+        else:
+            total_v = sum(r['Volume'] for r in reviewer_stats)
+            team_avg = (sum(r['Rejection Rate'] * r['Volume'] for r in reviewer_stats) / total_v) if total_v else None
+        if team_avg is not None:
+            rows.append({'Metric': 'Team Avg Rejection Rate', 'Feature': 'Reviewer Analysis', 'Value': _to_native(round(team_avg, 4))})
+        for r in reviewer_stats:
+            rows.append({'Metric': f"Reviewer {r['Reviewer']} Rejection Rate", 'Feature': 'Reviewer Analysis', 'Value': r['Rejection Rate']})
+            rows.append({'Metric': f"Reviewer {r['Reviewer']} vs Team", 'Feature': 'Reviewer Analysis', 'Value': r['vs Team']})
+    if time_series:
+        out['time_line_graph'] = _to_native(time_series)
     out['generic_table'] = rows
     if 'hitl_qa_decision' in df_sample.columns:
         vc = df_sample['hitl_qa_decision'].astype(str).value_counts()

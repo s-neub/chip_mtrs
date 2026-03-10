@@ -29809,6 +29809,33 @@
       ]
     }
   },
+  "reviewer_stats_table": [
+    {
+      "Reviewer": "USER-251.0",
+      "Volume": 232,
+      "Rejection Rate": 0.0,
+      "vs Team": 0.0
+    }
+  ],
+  "time_line_graph": {
+    "title": "HITL rejection rate and volume over time",
+    "x_axis_label": "Date",
+    "y_axis_label": "Rejection Rate / Volume",
+    "data": {
+      "Rejection Rate": [
+        [
+          "2026-03-04",
+          0.0
+        ]
+      ],
+      "Volume": [
+        [
+          "2026-03-04",
+          232
+        ]
+      ]
+    }
+  },
   "generic_table": [
     {
       "Metric": "Max CSI",
@@ -29824,6 +29851,16 @@
       "Metric": "Score PSI",
       "Feature": "ai_overall_status",
       "Value": 0.110846
+    },
+    {
+      "Metric": "Reviewer USER-251.0 Rejection Rate",
+      "Feature": "Reviewer Analysis",
+      "Value": 0.0
+    },
+    {
+      "Metric": "Reviewer USER-251.0 vs Team",
+      "Feature": "Reviewer Analysis",
+      "Value": 0.0
     }
   ],
   "generic_donut_chart": {
