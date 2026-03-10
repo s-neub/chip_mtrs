@@ -130,6 +130,7 @@ def init(job_json: dict) -> None:
     """
     Initializes the job and validates schema fail-fast using the UI asset.
     """
+    logger = utils.configure_logger()
     global JOB
     JOB = job_json
     infer.validate_schema(job_json)

@@ -159,6 +159,7 @@ def init(job_json: dict) -> None:
     """
     Initializes the job, extracts group information, and validates schema fail-fast.
     """
+    logger = utils.configure_logger()
     global JOB
     global GROUP
     

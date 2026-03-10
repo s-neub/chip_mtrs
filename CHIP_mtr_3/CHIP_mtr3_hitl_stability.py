@@ -333,6 +333,7 @@ def init(job_json: dict) -> None:
     Args:
         job_json (dict): job JSON
     """
+    logger = utils.configure_logger()
     global JOB
     global GROUP
     
