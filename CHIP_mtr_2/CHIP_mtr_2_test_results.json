@@ -1,116 +1,118 @@
-{
-  "generic_table": [
-    {
-      "Metric": "Confusion Pred=0 Actual=1",
-      "Value": 1.0
+[
+  {
+    "generic_table": [
+      {
+        "Metric": "Confusion Pred=0 Actual=1",
+        "Value": 1.0
+      },
+      {
+        "Metric": "Accuracy",
+        "Value": 0.9353
+      },
+      {
+        "Metric": "Precision",
+        "Value": 1.0
+      },
+      {
+        "Metric": "Recall",
+        "Value": 0.9353
+      },
+      {
+        "Metric": "F1 Score",
+        "Value": 0.9666
+      },
+      {
+        "Metric": "Auc",
+        "Value": null
+      },
+      {
+        "Metric": "Total feedback events",
+        "Value": 0
+      },
+      {
+        "Metric": "Total activity comments",
+        "Value": 3669
+      },
+      {
+        "Metric": "Reviewer volume",
+        "Value": "USER-251.0: 232"
+      },
+      {
+        "Metric": "First prediction date",
+        "Value": "2026-02-27T16:48:20+00:00"
+      },
+      {
+        "Metric": "Last prediction date",
+        "Value": "2026-03-04T11:34:43+00:00"
+      }
+    ],
+    "generic_bar_graph": {
+      "title": "AI vs HITL Concordance Metrics",
+      "x_axis_label": "Performance Metric",
+      "y_axis_label": "Score",
+      "rotated": false,
+      "data": {
+        "data1": [
+          0.9353,
+          1.0,
+          0.9353,
+          0.9666,
+          null
+        ]
+      },
+      "categories": [
+        "Accuracy",
+        "Precision",
+        "Recall",
+        "F1",
+        "AUC"
+      ]
     },
-    {
-      "Metric": "Accuracy",
-      "Value": 0.9353
+    "horizontal_bar_graph": {
+      "title": "AI vs HITL Concordance Metrics (Horizontal)",
+      "x_axis_label": "Score",
+      "y_axis_label": "Performance Metric",
+      "rotated": true,
+      "data": {
+        "data1": [
+          0.9353,
+          1.0,
+          0.9353,
+          0.9666,
+          null
+        ]
+      },
+      "categories": [
+        "Accuracy",
+        "Precision",
+        "Recall",
+        "F1",
+        "AUC"
+      ]
     },
-    {
-      "Metric": "Precision",
-      "Value": 1.0
+    "generic_donut_chart": {
+      "title": "Class Balance in Comparator Window (hitl_qa_decision)",
+      "type": "donut",
+      "data": {
+        "data1": [
+          232
+        ]
+      },
+      "categories": [
+        "1"
+      ]
     },
-    {
-      "Metric": "Recall",
-      "Value": 0.9353
-    },
-    {
-      "Metric": "F1 Score",
-      "Value": 0.9666
-    },
-    {
-      "Metric": "Auc",
-      "Value": null
-    },
-    {
-      "Metric": "Total feedback events",
-      "Value": 0
-    },
-    {
-      "Metric": "Total activity comments",
-      "Value": 3669
-    },
-    {
-      "Metric": "Reviewer volume",
-      "Value": "USER-251.0: 232"
-    },
-    {
-      "Metric": "First prediction date",
-      "Value": "2026-02-27T16:48:20+00:00"
-    },
-    {
-      "Metric": "Last prediction date",
-      "Value": "2026-03-04T11:34:43+00:00"
+    "generic_pie_chart": {
+      "title": "Class Balance in Comparator Window (hitl_qa_decision)",
+      "type": "pie",
+      "data": {
+        "data1": [
+          232
+        ]
+      },
+      "categories": [
+        "1"
+      ]
     }
-  ],
-  "generic_bar_graph": {
-    "title": "Classification metrics",
-    "x_axis_label": "Metric",
-    "y_axis_label": "Value",
-    "rotated": false,
-    "data": {
-      "data1": [
-        0.9353,
-        1.0,
-        0.9353,
-        0.9666,
-        null
-      ]
-    },
-    "categories": [
-      "Accuracy",
-      "Precision",
-      "Recall",
-      "F1",
-      "AUC"
-    ]
-  },
-  "horizontal_bar_graph": {
-    "title": "Classification metrics (horizontal)",
-    "x_axis_label": "Value",
-    "y_axis_label": "Metric",
-    "rotated": true,
-    "data": {
-      "data1": [
-        0.9353,
-        1.0,
-        0.9353,
-        0.9666,
-        null
-      ]
-    },
-    "categories": [
-      "Accuracy",
-      "Precision",
-      "Recall",
-      "F1",
-      "AUC"
-    ]
-  },
-  "generic_donut_chart": {
-    "title": "Class distribution (hitl_qa_decision)",
-    "type": "donut",
-    "data": {
-      "data1": [
-        232
-      ]
-    },
-    "categories": [
-      "1"
-    ]
-  },
-  "generic_pie_chart": {
-    "title": "Class distribution (hitl_qa_decision)",
-    "type": "pie",
-    "data": {
-      "data1": [
-        232
-      ]
-    },
-    "categories": [
-      "1"
-    ]
   }
-}
+]

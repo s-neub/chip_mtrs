@@ -1,340 +1,342 @@
-{
-  "generic_table": [
-    {
-      "Metric": "Max CSI",
-      "Feature": "batchId_CSI",
-      "Value": 2.561617
-    },
-    {
-      "Metric": "Min CSI",
-      "Feature": "businessKey_CSI",
-      "Value": 0.0
-    },
-    {
-      "Metric": "Score PSI",
-      "Feature": "ai_overall_status",
-      "Value": 0.110846
-    },
-    {
-      "Metric": "Team Avg Rejection Rate",
-      "Feature": "Reviewer Analysis",
-      "Value": 0.0
-    },
-    {
-      "Metric": "Reviewer USER-251.0 Rejection Rate",
-      "Feature": "Reviewer Analysis",
-      "Value": 0.0
-    },
-    {
-      "Metric": "Reviewer USER-251.0 vs Team",
-      "Feature": "Reviewer Analysis",
-      "Value": 0.0
-    },
-    {
-      "Metric": "QA feedback samples count",
-      "Feature": "HITL",
-      "Value": 100
-    },
-    {
-      "Metric": "First prediction date",
-      "Feature": "Comparator",
-      "Value": "2026-02-27T16:48:20+00:00"
-    },
-    {
-      "Metric": "Last prediction date",
-      "Feature": "Comparator",
-      "Value": "2026-03-04T11:34:43+00:00"
-    },
-    {
-      "Metric": "Baseline first date",
-      "Feature": "Baseline",
-      "Value": "2026-02-27T15:49:03+00:00"
-    },
-    {
-      "Metric": "Baseline last date",
-      "Feature": "Baseline",
-      "Value": "2026-02-27T16:00:26+00:00"
-    }
-  ],
-  "generic_bar_graph": {
-    "title": "Stability / Drift by feature (HITL)",
-    "x_axis_label": "Feature",
-    "y_axis_label": "Index / Distance",
-    "rotated": false,
-    "data": {
-      "data1": [
-        0.0,
-        2.561617,
-        0.0,
-        0.004322,
-        0.006215,
-        0.004322,
-        0.17378,
-        0.17378,
-        0.17378,
-        0.178079,
-        0.17378,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178725,
-        0.339019,
-        0.173803
-      ],
-      "data2": [
-        0.8326,
-        0.7558,
-        0.8326,
-        0.1515,
-        0.1421,
-        0.1515,
-        0.8273,
-        0.8273,
-        0.8273,
-        0.1319,
-        0.8273,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1377,
-        0.4213,
-        0.8255
-      ]
-    },
-    "categories": [
-      "businessKey",
-      "batchId",
-      "ai_verification_time",
-      "testName",
-      "ai_meets_specification",
-      "document_type",
-      "material_id",
-      "plant_id",
-      "batch_number",
-      "generated_by",
-      "date_generated",
-      "system",
-      "material_id_validation",
-      "plant_id_validation_result",
-      "batch_number_validation_result",
-      "dom_validation_result",
-      "system_validation_result",
-      "row_id",
-      "row_material",
-      "row_batch"
-    ]
-  },
-  "horizontal_bar_graph": {
-    "title": "Stability / Drift by feature (HITL, horizontal)",
-    "x_axis_label": "Index / Distance",
-    "y_axis_label": "Feature",
-    "rotated": true,
-    "data": {
-      "data1": [
-        0.0,
-        2.561617,
-        0.0,
-        0.004322,
-        0.006215,
-        0.004322,
-        0.17378,
-        0.17378,
-        0.17378,
-        0.178079,
-        0.17378,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178079,
-        0.178725,
-        0.339019,
-        0.173803
-      ],
-      "data2": [
-        0.8326,
-        0.7558,
-        0.8326,
-        0.1515,
-        0.1421,
-        0.1515,
-        0.8273,
-        0.8273,
-        0.8273,
-        0.1319,
-        0.8273,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1319,
-        0.1377,
-        0.4213,
-        0.8255
-      ]
-    },
-    "categories": [
-      "businessKey",
-      "batchId",
-      "ai_verification_time",
-      "testName",
-      "ai_meets_specification",
-      "document_type",
-      "material_id",
-      "plant_id",
-      "batch_number",
-      "generated_by",
-      "date_generated",
-      "system",
-      "material_id_validation",
-      "plant_id_validation_result",
-      "batch_number_validation_result",
-      "dom_validation_result",
-      "system_validation_result",
-      "row_id",
-      "row_material",
-      "row_batch"
-    ]
-  },
-  "generic_scatter_plot": {
-    "title": "Stability (CSI) vs Drift (JS) by feature (HITL)",
-    "x_axis_label": "CSI (Stability Index)",
-    "y_axis_label": "Jensen\u2013Shannon distance",
-    "type": "scatter",
-    "data": {
-      "data1": [
-        [
+[
+  {
+    "generic_table": [
+      {
+        "Metric": "Largest Stability Shift (CSI)",
+        "Feature": "Batchid Csi",
+        "Value": 2.561617
+      },
+      {
+        "Metric": "Smallest Stability Shift (CSI)",
+        "Feature": "Businesskey Csi",
+        "Value": 0.0
+      },
+      {
+        "Metric": "Overall Prediction Shift (PSI)",
+        "Feature": "Ai Overall Status",
+        "Value": 0.110846
+      },
+      {
+        "Metric": "Team Avg Rejection Rate",
+        "Feature": "Reviewer Analysis",
+        "Value": 0.0
+      },
+      {
+        "Metric": "Reviewer USER-251.0 Rejection Rate",
+        "Feature": "Reviewer Analysis",
+        "Value": 0.0
+      },
+      {
+        "Metric": "Reviewer USER-251.0 vs Team",
+        "Feature": "Reviewer Analysis",
+        "Value": 0.0
+      },
+      {
+        "Metric": "QA feedback samples count",
+        "Feature": "HITL",
+        "Value": 100
+      },
+      {
+        "Metric": "First prediction date",
+        "Feature": "Comparator",
+        "Value": "2026-02-27T16:48:20+00:00"
+      },
+      {
+        "Metric": "Last prediction date",
+        "Feature": "Comparator",
+        "Value": "2026-03-04T11:34:43+00:00"
+      },
+      {
+        "Metric": "Baseline first date",
+        "Feature": "Baseline",
+        "Value": "2026-02-27T15:49:03+00:00"
+      },
+      {
+        "Metric": "Baseline last date",
+        "Feature": "Baseline",
+        "Value": "2026-02-27T16:00:26+00:00"
+      }
+    ],
+    "generic_bar_graph": {
+      "title": "HITL Reviewer Calibration and Drift by Key Features",
+      "x_axis_label": "Monitored Feature",
+      "y_axis_label": "CSI / JS Value",
+      "rotated": false,
+      "data": {
+        "data1": [
           0.0,
-          0.8326
-        ],
-        [
           2.561617,
-          0.7558
-        ],
-        [
           0.0,
-          0.8326
-        ],
-        [
           0.004322,
-          0.1515
-        ],
-        [
           0.006215,
-          0.1421
-        ],
-        [
           0.004322,
-          0.1515
-        ],
-        [
           0.17378,
-          0.8273
-        ],
-        [
           0.17378,
-          0.8273
-        ],
-        [
           0.17378,
-          0.8273
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.17378,
-          0.8273
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.178079,
-          0.1319
-        ],
-        [
           0.178725,
-          0.1377
-        ],
-        [
           0.339019,
-          0.4213
+          0.173803
         ],
-        [
-          0.173803,
+        "data2": [
+          0.8326,
+          0.7558,
+          0.8326,
+          0.1515,
+          0.1421,
+          0.1515,
+          0.8273,
+          0.8273,
+          0.8273,
+          0.1319,
+          0.8273,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1377,
+          0.4213,
           0.8255
         ]
-      ]
-    }
-  },
-  "generic_donut_chart": {
-    "title": "HITL QA decision (comparator)",
-    "type": "donut",
-    "data": {
-      "data1": [
-        232
+      },
+      "categories": [
+        "Businesskey",
+        "Batchid",
+        "Ai Verification Time",
+        "Testname",
+        "Ai Meets Specification",
+        "Document Type",
+        "Material Id",
+        "Plant Id",
+        "Batch Number",
+        "Generated By",
+        "Date Generated",
+        "System",
+        "Material Id Validation",
+        "Plant Id Validation Result",
+        "Batch Number Validation Result",
+        "Dom Validation Result",
+        "System Validation Result",
+        "Row Id",
+        "Row Material",
+        "Row Batch"
       ]
     },
-    "categories": [
-      "1.0"
-    ]
-  },
-  "generic_pie_chart": {
-    "title": "HITL QA decision (comparator)",
-    "type": "pie",
-    "data": {
-      "data1": [
-        232
-      ]
-    },
-    "categories": [
-      "1.0"
-    ]
-  },
-  "time_line_graph": {
-    "title": "HITL rejection rate and volume over time",
-    "x_axis_label": "Date",
-    "y_axis_label": "Rejection Rate / Volume",
-    "data": {
-      "data1": [
-        [
-          "2026-03-04",
-          0.0
+    "horizontal_bar_graph": {
+      "title": "HITL Reviewer Calibration and Drift by Key Features (Horizontal)",
+      "x_axis_label": "CSI / JS Value",
+      "y_axis_label": "Monitored Feature",
+      "rotated": true,
+      "data": {
+        "data1": [
+          0.0,
+          2.561617,
+          0.0,
+          0.004322,
+          0.006215,
+          0.004322,
+          0.17378,
+          0.17378,
+          0.17378,
+          0.178079,
+          0.17378,
+          0.178079,
+          0.178079,
+          0.178079,
+          0.178079,
+          0.178079,
+          0.178079,
+          0.178725,
+          0.339019,
+          0.173803
+        ],
+        "data2": [
+          0.8326,
+          0.7558,
+          0.8326,
+          0.1515,
+          0.1421,
+          0.1515,
+          0.8273,
+          0.8273,
+          0.8273,
+          0.1319,
+          0.8273,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1319,
+          0.1377,
+          0.4213,
+          0.8255
         ]
-      ],
-      "data2": [
-        [
-          "2026-03-04",
+      },
+      "categories": [
+        "Businesskey",
+        "Batchid",
+        "Ai Verification Time",
+        "Testname",
+        "Ai Meets Specification",
+        "Document Type",
+        "Material Id",
+        "Plant Id",
+        "Batch Number",
+        "Generated By",
+        "Date Generated",
+        "System",
+        "Material Id Validation",
+        "Plant Id Validation Result",
+        "Batch Number Validation Result",
+        "Dom Validation Result",
+        "System Validation Result",
+        "Row Id",
+        "Row Material",
+        "Row Batch"
+      ]
+    },
+    "generic_scatter_plot": {
+      "title": "HITL Feature Drift Relationship (CSI vs JS Distance)",
+      "x_axis_label": "CSI (Stability Index)",
+      "y_axis_label": "Jensen\u2013Shannon distance",
+      "type": "scatter",
+      "data": {
+        "data1": [
+          [
+            0.0,
+            0.8326
+          ],
+          [
+            2.561617,
+            0.7558
+          ],
+          [
+            0.0,
+            0.8326
+          ],
+          [
+            0.004322,
+            0.1515
+          ],
+          [
+            0.006215,
+            0.1421
+          ],
+          [
+            0.004322,
+            0.1515
+          ],
+          [
+            0.17378,
+            0.8273
+          ],
+          [
+            0.17378,
+            0.8273
+          ],
+          [
+            0.17378,
+            0.8273
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.17378,
+            0.8273
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.178079,
+            0.1319
+          ],
+          [
+            0.178725,
+            0.1377
+          ],
+          [
+            0.339019,
+            0.4213
+          ],
+          [
+            0.173803,
+            0.8255
+          ]
+        ]
+      }
+    },
+    "generic_donut_chart": {
+      "title": "Comparator HITL Decision Mix",
+      "type": "donut",
+      "data": {
+        "data1": [
           232
         ]
+      },
+      "categories": [
+        "1.0"
       ]
+    },
+    "generic_pie_chart": {
+      "title": "Comparator HITL Decision Mix",
+      "type": "pie",
+      "data": {
+        "data1": [
+          232
+        ]
+      },
+      "categories": [
+        "1.0"
+      ]
+    },
+    "time_line_graph": {
+      "title": "HITL rejection rate and volume over time",
+      "x_axis_label": "Date",
+      "y_axis_label": "Rejection Rate / Volume",
+      "data": {
+        "data1": [
+          [
+            "2026-03-04",
+            0.0
+          ]
+        ],
+        "data2": [
+          [
+            "2026-03-04",
+            232
+          ]
+        ]
+      }
     }
   }
-}
+]

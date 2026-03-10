@@ -21,6 +21,7 @@ import json
 import os
 import re
 import glob
+import argparse
 import pandas as pd
 from datetime import timedelta, timezone
 
@@ -46,6 +47,13 @@ DEFAULT_CONFIG = {
         "FP": {"ai_overall_status": ["false", "Planned", "FAIL"], "hitl_qa_decision": ["Approved"]},
         "TN": {"ai_overall_status": ["true", "Submitted", "PASS"], "hitl_qa_decision": ["Approved", "Pending"]},
         "FN": {"ai_overall_status": ["true", "Submitted", "PASS"], "hitl_qa_decision": ["Rejected", "Reprocess"]}
+    },
+    "output_overwrite": {
+        "overwrite_readme": False,
+        "overwrite_dmn": False,
+        "overwrite_modelop_schema": False,
+        "overwrite_required_assets": False,
+        "overwrite_blank_schema_asset": False
     }
 }
 
@@ -563,7 +571,108 @@ def build_full_schema(all_columns, score_columns=None, label_columns=None):
 # EXPORT
 # ==========================================
 
-def export_monitor_assets(df_base, df_comp, monitor_name, schema_def, description, cols_to_keep_legend=None):
+MONITOR_DMN_FILES = {
+    "CHIP_mtr_1": "CHIP_M1_Stability_Drift.dmn",
+    "CHIP_mtr_2": "CHIP_M2_Performance.dmn",
+    "CHIP_mtr_3": "CHIP_M3_HITL_Stability_Drift.dmn",
+}
+
+
+def _should_write(path, overwrite_flag=False):
+    """Write when file is missing, or overwrite is explicitly enabled."""
+    return overwrite_flag or (not os.path.exists(path))
+
+
+def _write_json_if_allowed(path, payload, overwrite_flag=False):
+    if _should_write(path, overwrite_flag=overwrite_flag):
+        with open(path, 'w') as f:
+            json.dump(payload, f, indent=4)
+        return True
+    return False
+
+
+def _write_text_if_allowed(path, content, overwrite_flag=False):
+    if _should_write(path, overwrite_flag=overwrite_flag):
+        with open(path, 'w') as f:
+            f.write(content)
+        return True
+    return False
+
+
+def _build_monitor_readme(monitor_name, description):
+    """Generate monitor-specific user-facing README content."""
+    common_assets = """## Required Assets
+- **Baseline Data:** Historical records used to establish expected behavior.
+- **Comparator Data:** Recent production records used for current evaluation.
+- **Schema Asset:** Parsed by `infer.validate_schema()` to map score/label/predictor roles.
+"""
+    common_notes = """## Data Notes
+- Baseline and comparator exports are full-dimensional batch data.
+- Monitor scripts pre-filter columns needed by their metrics functions.
+- `CHIP_data/CHIP_master.*` is always refreshed by preprocess runs.
+"""
+    if monitor_name == "CHIP_mtr_1":
+        return f"""# CHIP_MTR_1 Monitor
+
+{description}
+
+## What this monitor tells you
+- Detects shifts between baseline and comparator for AI outputs and related dimensions.
+- Highlights which features are most unstable (CSI) and how that aligns with drift distance (JS).
+
+{common_assets}
+## UI Output Interpretation
+- **Generic Table:** High-level summary (largest/smallest CSI, overall PSI, date windows).
+- **Generic Bar Graph / Horizontal Bar Graph:** Side-by-side CSI (`data1`) and JS distance (`data2`) by feature.
+- **Generic Scatter Plot:** CSI vs JS relationship across top features.
+- **Generic Pie/Donut:** Comparator AI outcome mix.
+
+{common_notes}
+"""
+    if monitor_name == "CHIP_mtr_2":
+        return f"""# CHIP_MTR_2 Monitor
+
+{description}
+
+## What this monitor tells you
+- Measures concordance between AI and HITL labels using classification metrics.
+- Surfaces class balance and reviewer-level activity context for interpretability.
+
+{common_assets}
+## UI Output Interpretation
+- **Generic Table:** Confusion entries, key scores (accuracy/precision/recall/F1/AUC), reviewer/activity totals, date window.
+- **Generic Bar Graph / Horizontal Bar Graph:** Primary concordance metrics (`data1`) for quick comparison.
+- **Generic Pie/Donut:** Comparator class balance.
+
+## Known Caveat
+- AUC can be `null` when comparator contains only one effective class.
+
+{common_notes}
+"""
+    return f"""# CHIP_MTR_3 Monitor
+
+{description}
+
+## What this monitor tells you
+- Tracks reviewer calibration drift and stability changes over time.
+- Compares reviewer behavior to team average and summarizes QA feedback volume.
+
+{common_assets}
+## UI Output Interpretation
+- **Generic Table:** Largest/smallest CSI, overall PSI, team vs reviewer deltas, QA sample count, date windows.
+- **Generic Bar Graph / Horizontal Bar Graph:** CSI (`data1`) and JS distance (`data2`) by feature.
+- **Generic Scatter Plot:** Feature-level CSI vs JS relationship.
+- **Time Line Graph:** Daily rejection rate (`data1`) and review volume (`data2`).
+- **Generic Pie/Donut:** Comparator HITL decision mix.
+
+{common_notes}
+"""
+
+
+def export_monitor_assets(
+    df_base, df_comp, monitor_name, schema_def, description, cols_to_keep_legend=None,
+    overwrite_controls=None, dmn_templates=None
+):
     """Export ALL columns to baseline and comparator CSV/JSON; always write both files (even if empty)."""
     os.makedirs(monitor_name, exist_ok=True)
     all_cols_b = [c for c in df_base.columns]
@@ -581,33 +690,45 @@ def export_monitor_assets(df_base, df_comp, monitor_name, schema_def, descriptio
     df_c.to_csv(os.path.join(monitor_name, f'{monitor_name}_comparator.csv'), index=False)
     df_c.to_json(os.path.join(monitor_name, f'{monitor_name}_comparator.json'), orient='records', date_format='iso')
 
-    with open(os.path.join(monitor_name, 'modelop_schema.json'), 'w') as f:
-        json.dump(schema_def, f, indent=4)
+    overwrite_controls = overwrite_controls or {}
+    _write_json_if_allowed(
+        os.path.join(monitor_name, 'modelop_schema.json'),
+        schema_def,
+        overwrite_flag=overwrite_controls.get('overwrite_modelop_schema', False),
+    )
     schema_cols = list(schema_def.get("inputSchema", {}).get("items", {}).get("properties", {}).keys())
-    pd.DataFrame(columns=schema_cols).to_csv(os.path.join(monitor_name, 'blank_schema_asset.csv'), index=False)
+    blank_schema_path = os.path.join(monitor_name, 'blank_schema_asset.csv')
+    if _should_write(blank_schema_path, overwrite_flag=overwrite_controls.get('overwrite_blank_schema_asset', False)):
+        pd.DataFrame(columns=schema_cols).to_csv(blank_schema_path, index=False)
 
     required_assets = [
         {"role": "baseline_data", "description": "Historical Baseline Data required for comparison."},
         {"role": "comparator_data", "description": "Recent Production Comparator Data required for evaluation."},
         {"role": "schema", "description": "Blank schema asset to define input/output roles."}
     ]
-    with open(os.path.join(monitor_name, 'required_assets.json'), 'w') as f:
-        json.dump(required_assets, f, indent=4)
+    _write_json_if_allowed(
+        os.path.join(monitor_name, 'required_assets.json'),
+        required_assets,
+        overwrite_flag=overwrite_controls.get('overwrite_required_assets', False),
+    )
 
-    readme_content = """# {} Monitor
+    readme_content = _build_monitor_readme(monitor_name, description)
+    _write_text_if_allowed(
+        os.path.join(monitor_name, 'README.md'),
+        readme_content,
+        overwrite_flag=overwrite_controls.get('overwrite_readme', False),
+    )
 
-{}
-
-## Required Assets
-- **Baseline Data:** Historical dataset for establishing the baseline.
-- **Comparator Data:** Production dataset to be evaluated.
-- **Schema Asset:** Used by `infer.validate_schema()` to identify role assignments.
-
-## Full-dimensional data
-Baseline and comparator contain all batch-related columns. This monitor may pre-filter to the columns it needs in `init`/`metrics`.
-""".format(monitor_name.upper(), description)
-    with open(os.path.join(monitor_name, 'README.md'), 'w') as f:
-        f.write(readme_content)
+    # DMN overwrite hook (active when template content is provided)
+    dmn_templates = dmn_templates or {}
+    dmn_content = dmn_templates.get(monitor_name)
+    dmn_file = MONITOR_DMN_FILES.get(monitor_name)
+    if dmn_file and dmn_content:
+        _write_text_if_allowed(
+            os.path.join(monitor_name, dmn_file),
+            dmn_content,
+            overwrite_flag=overwrite_controls.get('overwrite_dmn', False),
+        )
 
 # ==========================================
 # MAIN
@@ -624,6 +745,12 @@ def execute_pipeline(
     config_path='config.yaml',
     min_records_baseline=20,
     min_records_comparator=20,
+    overwrite_readme=False,
+    overwrite_dmn=False,
+    overwrite_modelop_schema=False,
+    overwrite_required_assets=False,
+    overwrite_blank_schema_asset=False,
+    dmn_templates=None,
 ):
     print("--- Starting MTR Data Preprocessing Pipeline ---\n")
     config = load_config(config_path)
@@ -656,6 +783,20 @@ def execute_pipeline(
             min_records_baseline = split_cfg['min_records_baseline']
         if 'min_records_comparator' in split_cfg:
             min_records_comparator = split_cfg['min_records_comparator']
+    overwrite_cfg = config.get('output_overwrite') or {}
+    overwrite_readme = overwrite_cfg.get('overwrite_readme', overwrite_readme)
+    overwrite_dmn = overwrite_cfg.get('overwrite_dmn', overwrite_dmn)
+    overwrite_modelop_schema = overwrite_cfg.get('overwrite_modelop_schema', overwrite_modelop_schema)
+    overwrite_required_assets = overwrite_cfg.get('overwrite_required_assets', overwrite_required_assets)
+    overwrite_blank_schema_asset = overwrite_cfg.get('overwrite_blank_schema_asset', overwrite_blank_schema_asset)
+    overwrite_controls = {
+        'overwrite_readme': bool(overwrite_readme),
+        'overwrite_dmn': bool(overwrite_dmn),
+        'overwrite_modelop_schema': bool(overwrite_modelop_schema),
+        'overwrite_required_assets': bool(overwrite_required_assets),
+        'overwrite_blank_schema_asset': bool(overwrite_blank_schema_asset),
+    }
+    dmn_templates = dmn_templates or {}
 
     df_ground_truth = derive_ground_truth(activity_file, feedback_file)
     df_ai_flattened = process_real_claude_responses(ai_responses_dir)
@@ -740,22 +881,74 @@ def execute_pipeline(
     m1_allowed = parse_config_list(config['monitor_1_stability'].get('allowed_ai_overall_status', []))
     df_m1_base = df_base_master[df_base_master['ai_overall_status'].isin(m1_allowed)]
     df_m1_comp = df_comp_master[df_comp_master['ai_overall_status'].isin(m1_allowed)]
-    export_monitor_assets(df_m1_base, df_m1_comp, 'CHIP_mtr_1', full_schema, "Tracks the behavior and drift of the Claude AI model's output over time using PSI and Data Drift methods.", ['ai_overall_status', 'testName', 'ai_meets_specification'])
+    export_monitor_assets(
+        df_m1_base, df_m1_comp, 'CHIP_mtr_1', full_schema,
+        "Tracks AI output stability and drift between baseline and comparator windows.",
+        ['ai_overall_status', 'testName', 'ai_meets_specification'],
+        overwrite_controls=overwrite_controls,
+        dmn_templates=dmn_templates,
+    )
     print("  -> CHIP_mtr_1/ assets created.")
 
     # Monitor 2
     df_m2_base = df_base_master[df_base_master['cm_term'] != 'EXCLUDE']
     df_m2_comp = df_comp_master[df_comp_master['cm_term'] != 'EXCLUDE']
-    export_monitor_assets(df_m2_base, df_m2_comp, 'CHIP_mtr_2', full_schema, "Evaluates operational performance (Accuracy, Precision, Recall) against Human-In-The-Loop Ground Truth.", ['ai_overall_status', 'hitl_qa_decision'])
+    export_monitor_assets(
+        df_m2_base, df_m2_comp, 'CHIP_mtr_2', full_schema,
+        "Evaluates AI-vs-HITL concordance using classification metrics and class balance context.",
+        ['ai_overall_status', 'hitl_qa_decision'],
+        overwrite_controls=overwrite_controls,
+        dmn_templates=dmn_templates,
+    )
     print("  -> CHIP_mtr_2/ assets created.")
 
     # Monitor 3
     m3_allowed = parse_config_list(config['monitor_3_calibration'].get('allowed_hitl_qa_decision', []))
     df_m3_base = df_base_master[df_base_master['hitl_qa_decision'].isin(m3_allowed)]
     df_m3_comp = df_comp_master[df_comp_master['hitl_qa_decision'].isin(m3_allowed)]
-    export_monitor_assets(df_m3_base, df_m3_comp, 'CHIP_mtr_3', full_schema, "Tracks Human QA behavior drift and human intervention volume changes.", ['hitl_qa_decision', 'hitl_reviewer_id', 'testName'])
+    export_monitor_assets(
+        df_m3_base, df_m3_comp, 'CHIP_mtr_3', full_schema,
+        "Tracks HITL reviewer calibration drift, intervention patterns, and decision stability over time.",
+        ['hitl_qa_decision', 'hitl_reviewer_id', 'testName'],
+        overwrite_controls=overwrite_controls,
+        dmn_templates=dmn_templates,
+    )
     print("  -> CHIP_mtr_3/ assets created.")
     print("\n--- Pipeline Complete ---")
 
 if __name__ == "__main__":
-    execute_pipeline(split_method='DATE')
+    parser = argparse.ArgumentParser(description="Run CHIP preprocess pipeline with optional non-data overwrite controls.")
+    parser.add_argument("--split-method", choices=["DATE", "VOLUME"], default="DATE")
+    parser.add_argument("--days-threshold", type=int, default=None)
+    parser.add_argument("--volume-threshold", type=int, default=5000)
+    parser.add_argument("--baseline-start-date", type=str, default=None)
+    parser.add_argument("--activity-file", type=str, default='batch_activity_log_202603042226.json')
+    parser.add_argument("--feedback-file", type=str, default='ai_feedback_202603042225.json')
+    parser.add_argument("--ai-responses-dir", type=str, default='AI Responses')
+    parser.add_argument("--config-path", type=str, default='config.yaml')
+    parser.add_argument("--min-records-baseline", type=int, default=20)
+    parser.add_argument("--min-records-comparator", type=int, default=20)
+    parser.add_argument("--overwrite-readme", action="store_true", help="Allow README.md overwrite in monitor folders.")
+    parser.add_argument("--overwrite-dmn", action="store_true", help="Allow .dmn overwrite when DMN templates are provided.")
+    parser.add_argument("--overwrite-modelop-schema", action="store_true", help="Allow modelop_schema.json overwrite.")
+    parser.add_argument("--overwrite-required-assets", action="store_true", help="Allow required_assets.json overwrite.")
+    parser.add_argument("--overwrite-blank-schema-asset", action="store_true", help="Allow blank_schema_asset.csv overwrite.")
+    args = parser.parse_args()
+
+    execute_pipeline(
+        split_method=args.split_method,
+        days_threshold=args.days_threshold,
+        volume_threshold=args.volume_threshold,
+        baseline_start_date=args.baseline_start_date,
+        activity_file=args.activity_file,
+        feedback_file=args.feedback_file,
+        ai_responses_dir=args.ai_responses_dir,
+        config_path=args.config_path,
+        min_records_baseline=args.min_records_baseline,
+        min_records_comparator=args.min_records_comparator,
+        overwrite_readme=args.overwrite_readme,
+        overwrite_dmn=args.overwrite_dmn,
+        overwrite_modelop_schema=args.overwrite_modelop_schema,
+        overwrite_required_assets=args.overwrite_required_assets,
+        overwrite_blank_schema_asset=args.overwrite_blank_schema_asset,
+    )

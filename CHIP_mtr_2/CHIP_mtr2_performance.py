@@ -67,17 +67,17 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
         v = result.get(k)
         values.append(_to_native(v) if v is not None else 0)
     out['generic_bar_graph'] = {
-        'title': 'Classification metrics',
-        'x_axis_label': 'Metric',
-        'y_axis_label': 'Value',
+        'title': 'AI vs HITL Concordance Metrics',
+        'x_axis_label': 'Performance Metric',
+        'y_axis_label': 'Score',
         'rotated': False,
         'data': {'data1': values},
         'categories': metric_names
     }
     out['horizontal_bar_graph'] = {
-        'title': 'Classification metrics (horizontal)',
-        'x_axis_label': 'Value',
-        'y_axis_label': 'Metric',
+        'title': 'AI vs HITL Concordance Metrics (Horizontal)',
+        'x_axis_label': 'Score',
+        'y_axis_label': 'Performance Metric',
         'rotated': True,
         'data': {'data1': values},
         'categories': metric_names
@@ -111,13 +111,13 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
         counts = _to_native(vc.tolist())
         cats = _to_native(vc.index.tolist())
         out['generic_donut_chart'] = {
-            'title': f'Class distribution ({label_col})',
+            'title': f'Class Balance in Comparator Window ({label_col})',
             'type': 'donut',
             'data': {'data1': counts},
             'categories': cats
         }
         out['generic_pie_chart'] = {
-            'title': f'Class distribution ({label_col})',
+            'title': f'Class Balance in Comparator Window ({label_col})',
             'type': 'pie',
             'data': {'data1': counts},
             'categories': cats
@@ -288,7 +288,8 @@ if __name__ == "__main__":
         payload = {"error": str(e), "metrics_computed": False}
         print(f"[!] metrics() failed: {e}")
 
+    wrapped_payload = [payload]
     with open(out_path, 'w') as f:
-        json.dump(payload, f, indent=2, default=_json_serial)
+        json.dump(wrapped_payload, f, indent=2, default=_json_serial)
     print(f"\n[SUCCESS] Output written to {out_path}")
-    print(json.dumps(payload, indent=2, default=_json_serial))
+    print(json.dumps(wrapped_payload, indent=2, default=_json_serial))

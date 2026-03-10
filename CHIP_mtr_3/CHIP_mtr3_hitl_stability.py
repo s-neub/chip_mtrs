@@ -34,6 +34,11 @@ def _to_native(x):
     return x
 
 
+def _pretty_feature_name(name):
+    """Convert snake_case feature names into UI-friendly labels."""
+    return str(name).replace('_', ' ').strip().title()
+
+
 def _get_date_range(df: pd.DataFrame):
     """Get first and last timestamp from dataframe for monitor output tracking. Prefers ai_verification_time."""
     if df is None or df.empty:
@@ -242,26 +247,27 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         categories = categories[:n]
         psi_list = psi_vals[:n]
         js_list = (js_vals + [0] * n)[:n]
+        pretty_categories = [_pretty_feature_name(c) for c in categories]
         out['generic_bar_graph'] = {
-            'title': 'Stability / Drift by feature (HITL)',
-            'x_axis_label': 'Feature',
-            'y_axis_label': 'Index / Distance',
+            'title': 'HITL Reviewer Calibration and Drift by Key Features',
+            'x_axis_label': 'Monitored Feature',
+            'y_axis_label': 'CSI / JS Value',
             'rotated': False,
             'data': {'data1': psi_list, 'data2': js_list},
-            'categories': categories
+            'categories': pretty_categories
         }
         out['horizontal_bar_graph'] = {
-            'title': 'Stability / Drift by feature (HITL, horizontal)',
-            'x_axis_label': 'Index / Distance',
-            'y_axis_label': 'Feature',
+            'title': 'HITL Reviewer Calibration and Drift by Key Features (Horizontal)',
+            'x_axis_label': 'CSI / JS Value',
+            'y_axis_label': 'Monitored Feature',
             'rotated': True,
             'data': {'data1': psi_list, 'data2': js_list},
-            'categories': categories
+            'categories': pretty_categories
         }
         scatter_pts = [[psi_list[i], js_list[i]] for i in range(n) if psi_list[i] is not None and js_list[i] is not None]
         if scatter_pts:
             out['generic_scatter_plot'] = {
-                'title': 'Stability (CSI) vs Drift (JS) by feature (HITL)',
+                'title': 'HITL Feature Drift Relationship (CSI vs JS Distance)',
                 'x_axis_label': 'CSI (Stability Index)',
                 'y_axis_label': 'Jensen–Shannon distance',
                 'type': 'scatter',
@@ -269,12 +275,12 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
             }
     rows = []
     if 'CSI_maxCSIValue' in result:
-        rows.append({'Metric': 'Max CSI', 'Feature': result.get('CSI_maxCSIValueFeature', ''), 'Value': _to_native(result['CSI_maxCSIValue'])})
+        rows.append({'Metric': 'Largest Stability Shift (CSI)', 'Feature': _pretty_feature_name(result.get('CSI_maxCSIValueFeature', '')), 'Value': _to_native(result['CSI_maxCSIValue'])})
     if 'CSI_minCSIValue' in result:
-        rows.append({'Metric': 'Min CSI', 'Feature': result.get('CSI_minCSIValueFeature', ''), 'Value': _to_native(result['CSI_minCSIValue'])})
+        rows.append({'Metric': 'Smallest Stability Shift (CSI)', 'Feature': _pretty_feature_name(result.get('CSI_minCSIValueFeature', '')), 'Value': _to_native(result['CSI_minCSIValue'])})
     score_psi_key = next((k for k in result if k.endswith('_PSI')), None)
     if score_psi_key:
-        rows.append({'Metric': 'Score PSI', 'Feature': score_psi_key.replace('_PSI', ''), 'Value': _to_native(result[score_psi_key])})
+        rows.append({'Metric': 'Overall Prediction Shift (PSI)', 'Feature': _pretty_feature_name(score_psi_key.replace('_PSI', '')), 'Value': _to_native(result[score_psi_key])})
     if not rows:
         rows.append({'Metric': 'Stability/Drift', 'Feature': '-', 'Value': '-'})
     if reviewer_stats:
@@ -295,7 +301,7 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         ts = time_series
         data = ts.get('data', {})
         out['time_line_graph'] = {
-            'title': ts.get('title', 'HITL rejection rate and volume over time'),
+            'title': ts.get('title', 'Daily HITL Rejection Rate and Review Volume'),
             'x_axis_label': ts.get('x_axis_label', 'Date'),
             'y_axis_label': ts.get('y_axis_label', 'Rejection Rate / Volume'),
             'data': {'data1': data.get('Rejection Rate', []), 'data2': data.get('Volume', [])}
@@ -305,13 +311,13 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         counts = _to_native(vc.tolist())
         cats = _to_native(vc.index.tolist())
         out['generic_donut_chart'] = {
-            'title': 'HITL QA decision (comparator)',
+            'title': 'Comparator HITL Decision Mix',
             'type': 'donut',
             'data': {'data1': counts},
             'categories': cats
         }
         out['generic_pie_chart'] = {
-            'title': 'HITL QA decision (comparator)',
+            'title': 'Comparator HITL Decision Mix',
             'type': 'pie',
             'data': {'data1': counts},
             'categories': cats
@@ -527,7 +533,8 @@ if __name__ == "__main__":
         payload = {"error": str(e), "metrics_computed": False}
         print(f"[!] metrics() failed: {e}")
 
+    wrapped_payload = [payload]
     with open(out_path, 'w') as f:
-        json.dump(payload, f, indent=2, default=_json_serial)
+        json.dump(wrapped_payload, f, indent=2, default=_json_serial)
     print(f"\n[SUCCESS] Output written to {out_path}")
-    print(json.dumps(payload, indent=2, default=_json_serial))
+    print(json.dumps(wrapped_payload, indent=2, default=_json_serial))
