@@ -1,6 +1,6 @@
 [
   {
-    "generic_table": [
+    "ai_hitl_concordance_summary_table": [
       {
         "Metric": "Confusion Pred=0 Actual=1",
         "Value": 1.0
@@ -46,13 +46,13 @@
         "Value": "2026-03-04T11:34:43+00:00"
       }
     ],
-    "generic_bar_graph": {
+    "ai_hitl_concordance_bar_graph": {
       "title": "AI vs HITL Concordance Metrics",
       "x_axis_label": "Performance Metric",
       "y_axis_label": "Score",
       "rotated": false,
       "data": {
-        "data1": [
+        "metric_score": [
           0.9353,
           1.0,
           0.9353,
@@ -68,13 +68,13 @@
         "AUC"
       ]
     },
-    "horizontal_bar_graph": {
+    "ai_hitl_concordance_horizontal_bar_graph": {
       "title": "AI vs HITL Concordance Metrics (Horizontal)",
       "x_axis_label": "Score",
       "y_axis_label": "Performance Metric",
       "rotated": true,
       "data": {
-        "data1": [
+        "metric_score": [
           0.9353,
           1.0,
           0.9353,
@@ -90,11 +90,11 @@
         "AUC"
       ]
     },
-    "generic_donut_chart": {
+    "hitl_class_balance_donut_chart": {
       "title": "Class Balance in Comparator Window (hitl_qa_decision)",
       "type": "donut",
       "data": {
-        "data1": [
+        "decision_count": [
           232
         ]
       },
@@ -102,11 +102,11 @@
         "1"
       ]
     },
-    "generic_pie_chart": {
+    "hitl_class_balance_pie_chart": {
       "title": "Class Balance in Comparator Window (hitl_qa_decision)",
       "type": "pie",
       "data": {
-        "data1": [
+        "decision_count": [
           232
         ]
       },

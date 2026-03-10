@@ -1,6 +1,6 @@
 [
   {
-    "generic_table": [
+    "hitl_calibration_summary_table": [
       {
         "Metric": "Largest Stability Shift (CSI)",
         "Feature": "Batchid Csi",
@@ -57,13 +57,13 @@
         "Value": "2026-02-27T16:00:26+00:00"
       }
     ],
-    "generic_bar_graph": {
+    "hitl_calibration_drift_bar_graph": {
       "title": "HITL Reviewer Calibration and Drift by Key Features",
       "x_axis_label": "Monitored Feature",
       "y_axis_label": "CSI / JS Value",
       "rotated": false,
       "data": {
-        "data1": [
+        "csi_stability_index": [
           0.0,
           2.561617,
           0.0,
@@ -85,7 +85,7 @@
           0.339019,
           0.173803
         ],
-        "data2": [
+        "js_drift_distance": [
           0.8326,
           0.7558,
           0.8326,
@@ -131,13 +131,13 @@
         "Row Batch"
       ]
     },
-    "horizontal_bar_graph": {
+    "hitl_calibration_drift_horizontal_bar_graph": {
       "title": "HITL Reviewer Calibration and Drift by Key Features (Horizontal)",
       "x_axis_label": "CSI / JS Value",
       "y_axis_label": "Monitored Feature",
       "rotated": true,
       "data": {
-        "data1": [
+        "csi_stability_index": [
           0.0,
           2.561617,
           0.0,
@@ -159,7 +159,7 @@
           0.339019,
           0.173803
         ],
-        "data2": [
+        "js_drift_distance": [
           0.8326,
           0.7558,
           0.8326,
@@ -205,13 +205,13 @@
         "Row Batch"
       ]
     },
-    "generic_scatter_plot": {
+    "hitl_calibration_drift_scatter_plot": {
       "title": "HITL Feature Drift Relationship (CSI vs JS Distance)",
       "x_axis_label": "CSI (Stability Index)",
       "y_axis_label": "Jensen\u2013Shannon distance",
       "type": "scatter",
       "data": {
-        "data1": [
+        "feature_points": [
           [
             0.0,
             0.8326
@@ -295,11 +295,11 @@
         ]
       }
     },
-    "generic_donut_chart": {
+    "hitl_decision_mix_donut_chart": {
       "title": "Comparator HITL Decision Mix",
       "type": "donut",
       "data": {
-        "data1": [
+        "decision_count": [
           232
         ]
       },
@@ -307,11 +307,11 @@
         "1.0"
       ]
     },
-    "generic_pie_chart": {
+    "hitl_decision_mix_pie_chart": {
       "title": "Comparator HITL Decision Mix",
       "type": "pie",
       "data": {
-        "data1": [
+        "decision_count": [
           232
         ]
       },
@@ -319,18 +319,18 @@
         "1.0"
       ]
     },
-    "time_line_graph": {
+    "hitl_rejection_volume_time_line_graph": {
       "title": "HITL rejection rate and volume over time",
       "x_axis_label": "Date",
       "y_axis_label": "Rejection Rate / Volume",
       "data": {
-        "data1": [
+        "daily_rejection_rate": [
           [
             "2026-03-04",
             0.0
           ]
         ],
-        "data2": [
+        "daily_review_volume": [
           [
             "2026-03-04",
             232

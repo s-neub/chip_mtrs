@@ -50,10 +50,15 @@ def _get_date_range(df: pd.DataFrame):
     return None, None
 
 
-# Monitor Output Structure: only these keys are yielded and written to test_results.json
+# Monitor Output Structure keys for Monitor 2
+M2_TABLE_KEY = 'ai_hitl_concordance_summary_table'
+M2_BAR_KEY = 'ai_hitl_concordance_bar_graph'
+M2_HBAR_KEY = 'ai_hitl_concordance_horizontal_bar_graph'
+M2_DONUT_KEY = 'hitl_class_balance_donut_chart'
+M2_PIE_KEY = 'hitl_class_balance_pie_chart'
 M2_ALLOWED_KEYS = (
-    'generic_table', 'generic_bar_graph', 'horizontal_bar_graph',
-    'generic_donut_chart', 'generic_pie_chart'
+    M2_TABLE_KEY, M2_BAR_KEY, M2_HBAR_KEY,
+    M2_DONUT_KEY, M2_PIE_KEY
 )
 
 
@@ -66,20 +71,20 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
     for k in metric_keys:
         v = result.get(k)
         values.append(_to_native(v) if v is not None else 0)
-    out['generic_bar_graph'] = {
+    out[M2_BAR_KEY] = {
         'title': 'AI vs HITL Concordance Metrics',
         'x_axis_label': 'Performance Metric',
         'y_axis_label': 'Score',
         'rotated': False,
-        'data': {'data1': values},
+        'data': {'metric_score': values},
         'categories': metric_names
     }
-    out['horizontal_bar_graph'] = {
+    out[M2_HBAR_KEY] = {
         'title': 'AI vs HITL Concordance Metrics (Horizontal)',
         'x_axis_label': 'Score',
         'y_axis_label': 'Performance Metric',
         'rotated': True,
-        'data': {'data1': values},
+        'data': {'metric_score': values},
         'categories': metric_names
     }
     rows = []
@@ -104,22 +109,22 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
         vc = df_eval['hitl_reviewer_id'].fillna('Unknown').astype(str).value_counts()
         for rev, cnt in vc.items():
             rows.append({'Metric': 'Reviewer volume', 'Value': f'{str(rev)}: {int(cnt)}'})
-    out['generic_table'] = rows
+    out[M2_TABLE_KEY] = rows
     label_col = 'hitl_qa_decision' if 'hitl_qa_decision' in df_eval.columns else 'ai_overall_status'
     if label_col in df_eval.columns:
         vc = df_eval[label_col].astype(str).value_counts()
         counts = _to_native(vc.tolist())
         cats = _to_native(vc.index.tolist())
-        out['generic_donut_chart'] = {
+        out[M2_DONUT_KEY] = {
             'title': f'Class Balance in Comparator Window ({label_col})',
             'type': 'donut',
-            'data': {'data1': counts},
+            'data': {'decision_count': counts},
             'categories': cats
         }
-        out['generic_pie_chart'] = {
+        out[M2_PIE_KEY] = {
             'title': f'Class Balance in Comparator Window ({label_col})',
             'type': 'pie',
-            'data': {'data1': counts},
+            'data': {'decision_count': counts},
             'categories': cats
         }
     return out
@@ -138,9 +143,8 @@ def init(job_json: dict) -> None:
 # modelop.metrics
 def metrics(dataframe: pd.DataFrame) -> dict:
     """
-    Computes binary classification metrics. Yields only Monitor Output Structure keys:
-    generic_table, generic_bar_graph, horizontal_bar_graph, generic_donut_chart,
-    generic_pie_chart. Scalars and dates are included as generic_table rows.
+    Computes binary classification metrics. Yields only monitor-specific chart/table
+    keys. Scalars and dates are included as summary table rows.
 
     Weight variable: This monitor does not use a weight column for scoring. The pipeline
     still provides a numeric "weight" column (default 1.0) for consistency with stability
@@ -176,11 +180,11 @@ def metrics(dataframe: pd.DataFrame) -> dict:
     result = model_evaluator.evaluate_performance(pre_defined_metrics="classification_metrics")
     viz = _build_m2_visualizations(result, df_eval)
     first_d, last_d = _get_date_range(df_eval)
-    if viz.get('generic_table') is not None:
+    if viz.get(M2_TABLE_KEY) is not None:
         if first_d is not None:
-            viz['generic_table'].append({'Metric': 'First prediction date', 'Value': first_d})
+            viz[M2_TABLE_KEY].append({'Metric': 'First prediction date', 'Value': first_d})
         if last_d is not None:
-            viz['generic_table'].append({'Metric': 'Last prediction date', 'Value': last_d})
+            viz[M2_TABLE_KEY].append({'Metric': 'Last prediction date', 'Value': last_d})
     output = {k: viz[k] for k in M2_ALLOWED_KEYS if k in viz}
     yield output
     

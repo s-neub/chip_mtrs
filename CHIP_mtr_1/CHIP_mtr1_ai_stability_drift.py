@@ -57,10 +57,16 @@ def _get_date_range(df: pd.DataFrame):
     return None, None
 
 
-# Monitor Output Structure: only these keys are yielded and written to test_results.json
+# Monitor Output Structure keys for Monitor 1
+M1_TABLE_KEY = 'ai_stability_drift_summary_table'
+M1_BAR_KEY = 'ai_stability_drift_bar_graph'
+M1_HBAR_KEY = 'ai_stability_drift_horizontal_bar_graph'
+M1_SCATTER_KEY = 'ai_stability_drift_scatter_plot'
+M1_DONUT_KEY = 'ai_outcome_mix_donut_chart'
+M1_PIE_KEY = 'ai_outcome_mix_pie_chart'
 M1_ALLOWED_KEYS = (
-    'generic_table', 'generic_bar_graph', 'horizontal_bar_graph',
-    'generic_scatter_plot', 'generic_donut_chart', 'generic_pie_chart'
+    M1_TABLE_KEY, M1_BAR_KEY, M1_HBAR_KEY,
+    M1_SCATTER_KEY, M1_DONUT_KEY, M1_PIE_KEY
 )
 # Limit bar/scatter to top N features for aggregate summary
 M1_TOP_N_FEATURES = 20
@@ -95,30 +101,36 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         psi_list = psi_vals[:n]
         js_list = (js_vals + [0] * n)[:n]
         pretty_categories = [_pretty_feature_name(c) for c in categories]
-        out['generic_bar_graph'] = {
+        out[M1_BAR_KEY] = {
             'title': 'AI Stability vs Drift by Key Features (Baseline vs Comparator)',
             'x_axis_label': 'Monitored Feature',
             'y_axis_label': 'CSI / JS Value',
             'rotated': False,
-            'data': {'data1': psi_list, 'data2': js_list},
+            'data': {
+                'csi_stability_index': psi_list,
+                'js_drift_distance': js_list
+            },
             'categories': pretty_categories
         }
-        out['horizontal_bar_graph'] = {
+        out[M1_HBAR_KEY] = {
             'title': 'AI Stability vs Drift by Key Features (Horizontal)',
             'x_axis_label': 'CSI / JS Value',
             'y_axis_label': 'Monitored Feature',
             'rotated': True,
-            'data': {'data1': psi_list, 'data2': js_list},
+            'data': {
+                'csi_stability_index': psi_list,
+                'js_drift_distance': js_list
+            },
             'categories': pretty_categories
         }
         scatter_pts = [[psi_list[i], js_list[i]] for i in range(n) if psi_list[i] is not None and js_list[i] is not None]
         if scatter_pts:
-            out['generic_scatter_plot'] = {
+            out[M1_SCATTER_KEY] = {
                 'title': 'Feature Drift Relationship (CSI vs JS Distance)',
                 'x_axis_label': 'CSI (Stability Index)',
                 'y_axis_label': 'Jensen–Shannon distance',
                 'type': 'scatter',
-                'data': {'data1': scatter_pts}
+                'data': {'feature_points': scatter_pts}
             }
     rows = []
     if 'CSI_maxCSIValue' in result:
@@ -135,21 +147,21 @@ def _build_m1_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
         total_fb = int(pd.to_numeric(df_sample['feedback_text_count'], errors='coerce').fillna(0).sum())
         rows.append({'Metric': 'Comparator activity comment count (total)', 'Feature': 'Activity/Feedback', 'Value': total_act})
         rows.append({'Metric': 'Comparator feedback text count (total)', 'Feature': 'Activity/Feedback', 'Value': total_fb})
-    out['generic_table'] = rows
+    out[M1_TABLE_KEY] = rows
     if 'ai_overall_status' in df_sample.columns:
         vc = df_sample['ai_overall_status'].astype(str).value_counts()
         counts = _to_native(vc.tolist())
         cats = _to_native(vc.index.tolist())
-        out['generic_donut_chart'] = {
+        out[M1_DONUT_KEY] = {
             'title': 'Comparator AI Outcome Mix',
             'type': 'donut',
-            'data': {'data1': counts},
+            'data': {'outcome_count': counts},
             'categories': cats
         }
-        out['generic_pie_chart'] = {
+        out[M1_PIE_KEY] = {
             'title': 'Comparator AI Outcome Mix',
             'type': 'pie',
-            'data': {'data1': counts},
+            'data': {'outcome_count': counts},
             'categories': cats
         }
     return out
@@ -180,9 +192,8 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     """
     Computes combined stability and data drift metrics.
 
-    Yields only Monitor Output Structure keys for ModelOp UI: generic_table,
-    generic_bar_graph, horizontal_bar_graph, generic_scatter_plot,
-    generic_donut_chart, generic_pie_chart. Date range is included as
+    Yields only Monitor Output Structure keys for ModelOp UI with monitor-specific
+    names. Date range is included as
     generic_table rows. Raw stability/CSI/drift keys are not emitted.
 
     Weight variable: The input data must include a numeric column "weight" (default 1.0
@@ -239,16 +250,16 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict:
     baseline_first, baseline_last = _get_date_range(df_baseline)
     sample_first, sample_last = _get_date_range(df_sample)
     # Add date range to generic_table for tracking (aggregate summary only)
-    if viz.get('generic_table') is not None:
-        viz['generic_table'] = list(viz['generic_table'])
+    if viz.get(M1_TABLE_KEY) is not None:
+        viz[M1_TABLE_KEY] = list(viz[M1_TABLE_KEY])
         if sample_first is not None:
-            viz['generic_table'].append({'Metric': 'First prediction date', 'Feature': 'Comparator', 'Value': sample_first})
+            viz[M1_TABLE_KEY].append({'Metric': 'First prediction date', 'Feature': 'Comparator', 'Value': sample_first})
         if sample_last is not None:
-            viz['generic_table'].append({'Metric': 'Last prediction date', 'Feature': 'Comparator', 'Value': sample_last})
+            viz[M1_TABLE_KEY].append({'Metric': 'Last prediction date', 'Feature': 'Comparator', 'Value': sample_last})
         if baseline_first is not None:
-            viz['generic_table'].append({'Metric': 'Baseline first date', 'Feature': 'Baseline', 'Value': baseline_first})
+            viz[M1_TABLE_KEY].append({'Metric': 'Baseline first date', 'Feature': 'Baseline', 'Value': baseline_first})
         if baseline_last is not None:
-            viz['generic_table'].append({'Metric': 'Baseline last date', 'Feature': 'Baseline', 'Value': baseline_last})
+            viz[M1_TABLE_KEY].append({'Metric': 'Baseline last date', 'Feature': 'Baseline', 'Value': baseline_last})
     # 5. Yield only Monitor Output Structure keys (no stability, CSI_*, etc.)
     output = {k: viz[k] for k in M1_ALLOWED_KEYS if k in viz}
     yield output

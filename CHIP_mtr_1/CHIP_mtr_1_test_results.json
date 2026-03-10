@@ -1,6 +1,6 @@
 [
   {
-    "generic_table": [
+    "ai_stability_drift_summary_table": [
       {
         "Metric": "Largest Stability Shift (CSI)",
         "Feature": "Batchid Csi",
@@ -47,13 +47,13 @@
         "Value": "2026-02-27T16:00:26+00:00"
       }
     ],
-    "generic_bar_graph": {
+    "ai_stability_drift_bar_graph": {
       "title": "AI Stability vs Drift by Key Features (Baseline vs Comparator)",
       "x_axis_label": "Monitored Feature",
       "y_axis_label": "CSI / JS Value",
       "rotated": false,
       "data": {
-        "data1": [
+        "csi_stability_index": [
           0.0,
           2.561617,
           0.0,
@@ -75,7 +75,7 @@
           0.339019,
           0.173803
         ],
-        "data2": [
+        "js_drift_distance": [
           0.8326,
           0.7558,
           0.8326,
@@ -121,13 +121,13 @@
         "Row Batch"
       ]
     },
-    "horizontal_bar_graph": {
+    "ai_stability_drift_horizontal_bar_graph": {
       "title": "AI Stability vs Drift by Key Features (Horizontal)",
       "x_axis_label": "CSI / JS Value",
       "y_axis_label": "Monitored Feature",
       "rotated": true,
       "data": {
-        "data1": [
+        "csi_stability_index": [
           0.0,
           2.561617,
           0.0,
@@ -149,7 +149,7 @@
           0.339019,
           0.173803
         ],
-        "data2": [
+        "js_drift_distance": [
           0.8326,
           0.7558,
           0.8326,
@@ -195,13 +195,13 @@
         "Row Batch"
       ]
     },
-    "generic_scatter_plot": {
+    "ai_stability_drift_scatter_plot": {
       "title": "Feature Drift Relationship (CSI vs JS Distance)",
       "x_axis_label": "CSI (Stability Index)",
       "y_axis_label": "Jensen\u2013Shannon distance",
       "type": "scatter",
       "data": {
-        "data1": [
+        "feature_points": [
           [
             0.0,
             0.8326
@@ -285,11 +285,11 @@
         ]
       }
     },
-    "generic_donut_chart": {
+    "ai_outcome_mix_donut_chart": {
       "title": "Comparator AI Outcome Mix",
       "type": "donut",
       "data": {
-        "data1": [
+        "outcome_count": [
           217,
           15
         ]
@@ -299,11 +299,11 @@
         "0.0"
       ]
     },
-    "generic_pie_chart": {
+    "ai_outcome_mix_pie_chart": {
       "title": "Comparator AI Outcome Mix",
       "type": "pie",
       "data": {
-        "data1": [
+        "outcome_count": [
           217,
           15
         ]
