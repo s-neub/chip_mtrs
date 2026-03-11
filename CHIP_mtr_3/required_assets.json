@@ -1,10 +1,16 @@
 [
     {
-        "role": "baseline_data",
-        "description": "Historical Baseline Data required for comparison."
+        "usage": "INPUT_ASSET",
+        "assetRole": "BASELINE_DATA",
+        "metaData": {
+            "description": "Baseline/Reference Dataset"
+        }
     },
     {
-        "role": "comparator_data",
-        "description": "Recent Production Comparator Data required for evaluation."
+        "usage": "INPUT_ASSET",
+        "assetRole": "COMPARATOR_DATA",
+        "metaData": {
+            "description": "Slice of Production Data"
+        }
     }
 ]

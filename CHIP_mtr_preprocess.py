@@ -916,6 +916,117 @@ def execute_pipeline(
     print("  -> CHIP_mtr_3/ assets created.")
     print("\n--- Pipeline Complete ---")
 
+
+def execute_pipeline_csv_only(
+    output_dir,
+    split_method='DATE',
+    days_threshold=None,
+    volume_threshold=5000,
+    baseline_start_date=None,
+    activity_file=None,
+    feedback_file=None,
+    ai_responses_dir=None,
+    config_path='config.yaml',
+    min_records_baseline=20,
+    min_records_comparator=20,
+):
+    """
+    Run the ETL pipeline and write only CSV outputs to output_dir:
+    CHIP_master.csv, CHIP_baseline.csv, CHIP_comparator.csv.
+    Used by the CHIP_mtr_data monitor. Input paths can be overridden via arguments
+    or resolved from config (when activity_file, feedback_file, ai_responses_dir are None).
+    """
+    config = load_config(config_path)
+    sources = config.get('sources') or {}
+    act_dir = sources.get('activity_directory', '.')
+    act_pat = sources.get('activity_pattern')
+    fb_dir = sources.get('feedback_directory', '.')
+    fb_pat = sources.get('feedback_pattern')
+    activity_file = activity_file or get_latest_flat_file(act_dir, act_pat) or 'batch_activity_log_202603042226.json'
+    feedback_file = feedback_file or get_latest_flat_file(fb_dir, fb_pat) or 'ai_feedback_202603042225.json'
+    ai_responses_dir = ai_responses_dir or sources.get('ai_responses_dir') or 'AI Responses'
+    split_cfg = config.get('split') or {}
+    if split_cfg:
+        if 'days_threshold' in split_cfg:
+            days_threshold = split_cfg['days_threshold']
+        if 'min_records_baseline' in split_cfg:
+            min_records_baseline = split_cfg['min_records_baseline']
+        if 'min_records_comparator' in split_cfg:
+            min_records_comparator = split_cfg['min_records_comparator']
+
+    df_ground_truth = derive_ground_truth(activity_file, feedback_file)
+    df_ai_flattened = process_real_claude_responses(ai_responses_dir)
+    if df_ai_flattened.empty:
+        return {"master_rows": 0, "baseline_rows": 0, "comparator_rows": 0}
+
+    df_final = pd.merge(df_ai_flattened, df_ground_truth, on='batchId', how='left')
+    df_final['hitl_qa_decision'] = df_final['hitl_qa_decision'].fillna('Pending')
+    df_final = enrich_batch_dimensions(df_final, activity_file, feedback_file)
+    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(config['monitor_2_performance'],), axis=1)
+    df_final['ai_verification_time'] = pd.to_datetime(df_final['ai_verification_time'], format='mixed', utc=True)
+    df_final = df_final.sort_values('ai_verification_time').reset_index(drop=True)
+    df_final['weight'] = 1.0
+
+    if baseline_start_date:
+        start_dt = pd.to_datetime(baseline_start_date).replace(tzinfo=timezone.utc)
+        df_final = df_final[df_final['ai_verification_time'] >= start_dt]
+
+    split_method_upper = split_method.upper()
+    if split_method_upper == 'DATE':
+        baseline_fraction = (config.get('split') or {}).get('baseline_fraction')
+        if baseline_fraction is not None and days_threshold is None:
+            threshold_date, split_method_str = compute_threshold_date_by_fraction(df_final, baseline_fraction=baseline_fraction)
+            if threshold_date is None:
+                threshold_date, _ = compute_threshold_date(df_final, days_threshold=None, min_records_baseline=min_records_baseline, min_records_comparator=min_records_comparator)
+                split_method_str = "date-auto"
+        else:
+            threshold_date, used_days = compute_threshold_date(df_final, days_threshold=days_threshold, min_records_baseline=min_records_baseline, min_records_comparator=min_records_comparator)
+            if threshold_date is None:
+                threshold_date = df_final['ai_verification_time'].max() - timedelta(days=days_threshold or 30)
+                used_days = days_threshold or 30
+            split_method_str = f"date-{used_days if used_days is not None else 'auto'}"
+        df_base_master = df_final[df_final['ai_verification_time'] <= threshold_date].copy()
+        df_comp_master = df_final[df_final['ai_verification_time'] > threshold_date].copy()
+    elif split_method_upper == 'VOLUME':
+        split_method_str = f"volume-{volume_threshold}"
+        if len(df_final) <= volume_threshold:
+            df_base_master = df_final.copy()
+            df_comp_master = pd.DataFrame(columns=df_final.columns)
+        else:
+            df_base_master = df_final.iloc[:volume_threshold].copy()
+            df_comp_master = df_final.iloc[volume_threshold:].copy()
+    else:
+        raise ValueError("split_method must be 'DATE' or 'VOLUME'.")
+
+    df_base_master = df_base_master.copy()
+    df_comp_master = df_comp_master.copy()
+    df_base_master['dataset'] = 'baseline'
+    df_base_master['split_method'] = split_method_str
+    df_comp_master['dataset'] = 'comparator'
+    df_comp_master['split_method'] = split_method_str
+    df_master = pd.concat([df_base_master, df_comp_master], ignore_index=True)
+    os.makedirs(output_dir, exist_ok=True)
+    master_path = os.path.join(output_dir, 'CHIP_master.csv')
+    df_master.to_csv(master_path, index=False)
+
+    df_base_master = df_base_master.drop(columns=['dataset', 'split_method'], errors='ignore')
+    df_comp_master = df_comp_master.drop(columns=['dataset', 'split_method'], errors='ignore')
+    baseline_path = os.path.join(output_dir, 'CHIP_baseline.csv')
+    comparator_path = os.path.join(output_dir, 'CHIP_comparator.csv')
+    df_base_master.to_csv(baseline_path, index=False)
+    df_comp_master.to_csv(comparator_path, index=False)
+
+    return {
+        "master_rows": len(df_master),
+        "baseline_rows": len(df_base_master),
+        "comparator_rows": len(df_comp_master),
+        "output_dir": output_dir,
+        "CHIP_master_csv": master_path,
+        "CHIP_baseline_csv": baseline_path,
+        "CHIP_comparator_csv": comparator_path,
+    }
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run CHIP preprocess pipeline with optional non-data overwrite controls.")
     parser.add_argument("--split-method", choices=["DATE", "VOLUME"], default="DATE")

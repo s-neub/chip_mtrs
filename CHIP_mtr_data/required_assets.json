@@ -1,0 +1,23 @@
+[
+    {
+        "usage": "INPUT_ASSET",
+        "assetRole": "BASELINE_DATA",
+        "metaData": {
+            "description": "Batch activity log JSON (batch_activity_log)"
+        }
+    },
+    {
+        "usage": "INPUT_ASSET",
+        "assetRole": "COMPARATOR_DATA",
+        "metaData": {
+            "description": "AI feedback JSON (ai_feedback)"
+        }
+    },
+    {
+        "usage": "INPUT_ASSET",
+        "assetRole": "COMPARATOR_DATA",
+        "metaData": {
+            "description": "Directory or archive of AI response JSONs"
+        }
+    }
+]

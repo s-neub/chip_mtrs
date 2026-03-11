@@ -1,6 +1,9 @@
 [
     {
-        "role": "comparator_data",
-        "description": "Recent Production Comparator Data required for evaluation."
+        "usage": "INPUT_ASSET",
+        "assetRole": "COMPARATOR_DATA",
+        "metaData": {
+            "description": "Slice of Production Data"
+        }
     }
 ]
