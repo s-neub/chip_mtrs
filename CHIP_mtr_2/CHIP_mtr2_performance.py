@@ -220,7 +220,7 @@ def metrics(dataframe: pd.DataFrame) -> dict: #type: ignore
         if last_d is not None:
             viz[M2_TABLE_KEY].append({'Metric': 'Last prediction date', 'Value': last_d})
     output = {k: viz[k] for k in M2_ALLOWED_KEYS if k in viz}
-    yield output
+    yield output #type: ignore
     
 
 if __name__ == "__main__":

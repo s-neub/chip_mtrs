@@ -289,7 +289,7 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: 
             viz[M1_TABLE_KEY].append({'Metric': 'Baseline last date', 'Feature': 'Baseline', 'Value': baseline_last})
     # 5. Yield only Monitor Output Structure keys (no stability, CSI_*, etc.)
     output = {k: viz[k] for k in M1_ALLOWED_KEYS if k in viz}
-    yield output
+    yield output #type: ignore
 
 
 if __name__ == "__main__":

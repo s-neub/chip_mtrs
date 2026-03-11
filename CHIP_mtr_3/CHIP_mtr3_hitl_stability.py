@@ -469,7 +469,7 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: 
         if baseline_last is not None:
             viz[M3_TABLE_KEY].append({'Metric': 'Baseline last date', 'Feature': 'Baseline', 'Value': baseline_last})
     output = {k: viz[k] for k in M3_ALLOWED_KEYS if k in viz}
-    yield output
+    yield output #type: ignore
 
 if __name__ == "__main__":
     # Local Testing Execution Block (Slide 38 ModelOp Developer Training)
