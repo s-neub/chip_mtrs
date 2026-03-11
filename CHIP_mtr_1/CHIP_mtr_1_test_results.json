@@ -1,0 +1,127 @@
+[
+  {
+    "ai_stability_drift_summary_table": [
+      {
+        "Metric": "Largest Stability Shift (CSI)",
+        "Feature": "None",
+        "Value": null
+      },
+      {
+        "Metric": "Smallest Stability Shift (CSI)",
+        "Feature": "None",
+        "Value": null
+      },
+      {
+        "Metric": "Overall Prediction Shift (PSI)",
+        "Feature": "Ai Overall Status",
+        "Value": 0.110846
+      },
+      {
+        "Metric": "Comparator activity comment count (total)",
+        "Feature": "Activity/Feedback",
+        "Value": 3669
+      },
+      {
+        "Metric": "Comparator feedback text count (total)",
+        "Feature": "Activity/Feedback",
+        "Value": 0
+      },
+      {
+        "Metric": "First prediction date",
+        "Feature": "Comparator",
+        "Value": "2026-02-27T16:48:20+00:00"
+      },
+      {
+        "Metric": "Last prediction date",
+        "Feature": "Comparator",
+        "Value": "2026-03-04T11:34:43+00:00"
+      },
+      {
+        "Metric": "Baseline first date",
+        "Feature": "Baseline",
+        "Value": "2026-02-27T15:49:03+00:00"
+      },
+      {
+        "Metric": "Baseline last date",
+        "Feature": "Baseline",
+        "Value": "2026-02-27T16:00:26+00:00"
+      }
+    ],
+    "ai_stability_drift_bar_graph": {
+      "title": "AI Stability vs Drift by Key Features (Baseline vs Comparator)",
+      "x_axis_label": "Monitored Feature",
+      "y_axis_label": "CSI / JS Value",
+      "rotated": false,
+      "data": {
+        "csi_stability_index": [
+          0.110846
+        ],
+        "js_drift_distance": [
+          0
+        ]
+      },
+      "categories": [
+        "Ai Overall Status"
+      ]
+    },
+    "ai_stability_drift_horizontal_bar_graph": {
+      "title": "AI Stability vs Drift by Key Features (Horizontal)",
+      "x_axis_label": "CSI / JS Value",
+      "y_axis_label": "Monitored Feature",
+      "rotated": true,
+      "data": {
+        "csi_stability_index": [
+          0.110846
+        ],
+        "js_drift_distance": [
+          0
+        ]
+      },
+      "categories": [
+        "Ai Overall Status"
+      ]
+    },
+    "ai_stability_drift_scatter_plot": {
+      "title": "Feature Drift Relationship (CSI vs JS Distance)",
+      "x_axis_label": "CSI (Stability Index)",
+      "y_axis_label": "Jensen\u2013Shannon distance",
+      "type": "scatter",
+      "data": {
+        "feature_points": [
+          [
+            0.110846,
+            0
+          ]
+        ]
+      }
+    },
+    "ai_outcome_mix_donut_chart": {
+      "title": "Comparator AI Outcome Mix",
+      "type": "donut",
+      "data": {
+        "outcome_count": [
+          217,
+          15
+        ]
+      },
+      "categories": [
+        "1.0",
+        "0.0"
+      ]
+    },
+    "ai_outcome_mix_pie_chart": {
+      "title": "Comparator AI Outcome Mix",
+      "type": "pie",
+      "data": {
+        "outcome_count": [
+          217,
+          15
+        ]
+      },
+      "categories": [
+        "1.0",
+        "0.0"
+      ]
+    }
+  }
+]

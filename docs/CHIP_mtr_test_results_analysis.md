@@ -1,11 +1,24 @@
 # CHIP Monitor Test Results – Aggregate Summary vs. Proposal
 
-**Run:** Preprocess → MTR 1, MTR 2, MTR 3  
+**Run:** CHIP_mtr_data (preprocessing) → MTR 1, MTR 2, MTR 3  
 **Reference:** BMS CHIP – Product Disposition – Document (COA/Report) Validation Use Case – Monitor Recommendations  
 
 ---
 
 ## 1. Test Run Summary
+
+### Latest run (chained: preprocessing monitor then downstream monitors)
+
+| Step | Description | Result |
+|------|-------------|--------|
+| **CHIP_mtr_data** | ETL preprocessing monitor – `execute_pipeline_csv_only()` → `CHIP_data/CHIP_master.csv`, `CHIP_baseline.csv`, `CHIP_comparator.csv` | OK – master=448, baseline=216, comparator=232 (CSV only; date split) |
+| **MTR 1** | Model Output Stability (Drift) – AI decisions baseline vs comparator; inputs from `CHIP_data` | OK – metrics and visualizations written to `CHIP_mtr_1_test_results.json` (PSI ai_overall_status ≈ 0.1108) |
+| **MTR 2** | Approval Concordance – AI vs Human QA agreement; comparator from `CHIP_data` | OK – metrics and visualizations written to `CHIP_mtr_2_test_results.json` (Accuracy 93.53%, AUC null – single class in comparator) |
+| **MTR 3** | QA Calibration – Human reviewer stability and vs team; inputs from `CHIP_data` | OK – metrics and visualizations written to `CHIP_mtr_3_test_results.json` (Team rejection 1.0; reviewer USER-251.0; time_line_graph present) |
+
+Local execution order: (1) Run preprocessing (or `execute_pipeline_csv_only` with `output_dir=CHIP_data`); (2) Run CHIP_mtr_1, CHIP_mtr_2, CHIP_mtr_3 with `PYTHONPATH` set to repo root. Downstream monitors load baseline/comparator from `CHIP_data/CHIP_baseline.csv` and `CHIP_data/CHIP_comparator.csv` when local JSON assets are not present.
+
+### Previous run (legacy: single preprocess script then monitors)
 
 | Step | Description | Result |
 |------|-------------|--------|
@@ -162,6 +175,7 @@ All new columns are derived from `batch_activity_log` event fields with no chang
 
 ## 5. Conclusion and Next Steps
 
+- **Chained run (CHIP_mtr_data → M1/M2/M3):** The preprocessing monitor produces CSV-only outputs in `CHIP_data/` (CHIP_master.csv, CHIP_baseline.csv, CHIP_comparator.csv). The three downstream monitors were run locally reading from these CSVs; all completed successfully and wrote test result JSONs. In ModelOp Center, add CHIP_mtr_data to the implementation first, configure its input assets, then add M1/M2/M3 and select the preprocessing outputs as BASELINE_DATA/COMPARATOR_DATA.
 - **ModelOp Customer Success deliverable:** All three custom monitors ran successfully. They match the **required functionality** described in the proposal (stability/drift, concordance, QA calibration with reviewer vs team and time series).
 - **E-sign and user identity tracking (new):** The pipeline now extracts batch-level e-sign status, e-signer user ID, batch assignee names (current and previous), assignee ID, and QA reviewer name from the activity log. The e-signer and QA reviewer are confirmed to be different individuals (user 217 vs USER-251.0 / Tanya Chakladar), validating the need for separate tracking. All new columns flow through to CHIP_master and all three monitor schemas. See Section 3 for full details.
 - **BMS CHIP / Customer success criteria (this run):**

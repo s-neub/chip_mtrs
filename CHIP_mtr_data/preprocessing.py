@@ -70,3 +70,19 @@ def metrics() -> dict:
         min_records_comparator=min_records_comparator,
     )
     yield result
+
+
+if __name__ == "__main__":
+    # Local run: write CSVs to CHIP_data for downstream monitors
+    output_dir = os.path.join(_PARENT, "CHIP_data")
+    mock_job = {
+        "rawJson": json.dumps({
+            "jobParameters": {
+                "output_dir": output_dir,
+                "config_path": os.path.join(_PARENT, "config.yaml"),
+            }
+        })
+    }
+    init(mock_job)
+    results = list(metrics())
+    print("CHIP_mtr_data monitor output:", results[0] if results else {})

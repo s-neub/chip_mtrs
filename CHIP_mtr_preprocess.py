@@ -942,8 +942,8 @@ def execute_pipeline_csv_only(
     act_pat = sources.get('activity_pattern')
     fb_dir = sources.get('feedback_directory', '.')
     fb_pat = sources.get('feedback_pattern')
-    activity_file = activity_file or get_latest_flat_file(act_dir, act_pat) or 'batch_activity_log_202603042226.json'
-    feedback_file = feedback_file or get_latest_flat_file(fb_dir, fb_pat) or 'ai_feedback_202603042225.json'
+    activity_file = activity_file or (get_latest_flat_file(act_dir, act_pat) if act_pat else None) or 'batch_activity_log_202603042226.json'
+    feedback_file = feedback_file or (get_latest_flat_file(fb_dir, fb_pat) if fb_pat else None) or 'ai_feedback_202603042225.json'
     ai_responses_dir = ai_responses_dir or sources.get('ai_responses_dir') or 'AI Responses'
     split_cfg = config.get('split') or {}
     if split_cfg:

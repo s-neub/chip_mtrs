@@ -294,31 +294,43 @@ def metrics(df_baseline: pd.DataFrame, df_sample: pd.DataFrame) -> dict: #type: 
 
 if __name__ == "__main__":
     # Local Testing Execution Block (Slide 38 ModelOp Developer Training)
-    # Assumes mtr_preprocess.py has generated the files in the current directory.
+    # Load from CHIP_data (preprocessing monitor output) or local JSON if present.
     
     print("Testing Monitor 1 locally...")
     
-    # 1. Build a minimal mock job JSON to simulate platform init payload
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    mock_job = {
-        "rawJson": json.dumps({
-            "referenceModel": {},
-            "jobParameters": {}
-        })
+    chip_data_dir = os.path.join(os.path.dirname(script_dir), 'CHIP_data')
+    # Minimal job schema so ModelOp SDK extract_input_schema succeeds (local run only)
+    _minimal_schema = {
+        "name": "chip_m1",
+        "type": "record",
+        "fields": [
+            {"name": "ai_overall_status", "type": "string", "dataClass": "categorical", "role": "score", "protectedClass": False, "driftCandidate": True, "specialValues": [], "scoringOptional": False},
+            {"name": "weight", "type": "float", "dataClass": "numerical", "role": "weight", "protectedClass": False, "driftCandidate": False, "specialValues": [], "scoringOptional": False},
+        ],
     }
-    
-    # 2. Call init()
+    mock_job = {"rawJson": json.dumps({"referenceModel": {"storedModel": {"modelMetaData": {"inputSchema": [{"schemaDefinition": _minimal_schema}]}}}, "jobParameters": {}})}
     init(mock_job)
-    
-    # 3. Load test data (full columns so schema columns exist; platform may pre-filter when invoking metrics())
+    # 3. Load test data: from CHIP_data (preprocessing monitor output) or local JSON if present
     try:
-        df_b = pd.read_json(os.path.join(script_dir, 'CHIP_mtr_1_baseline.json'), orient='records')
-        df_c = pd.read_json(os.path.join(script_dir, 'CHIP_mtr_1_comparator.json'), orient='records')
+        base_json = os.path.join(script_dir, 'CHIP_mtr_1_baseline.json')
+        comp_json = os.path.join(script_dir, 'CHIP_mtr_1_comparator.json')
+        base_csv = os.path.join(chip_data_dir, 'CHIP_baseline.csv')
+        comp_csv = os.path.join(chip_data_dir, 'CHIP_comparator.csv')
+        if os.path.exists(base_json) and os.path.exists(comp_json):
+            df_b = pd.read_json(base_json, orient='records')
+            df_c = pd.read_json(comp_json, orient='records')
+        elif os.path.exists(base_csv) and os.path.exists(comp_csv):
+            df_b = pd.read_csv(base_csv)
+            df_c = pd.read_csv(comp_csv)
+            print("[*] Loaded baseline/comparator from CHIP_data (preprocessing monitor output).")
+        else:
+            print("[!] No test data. Run CHIP_mtr_data preprocessing first or place CHIP_mtr_1_baseline/comparator in this dir.")
+            sys.exit(1)
         if df_b.empty and df_c.empty:
             print("[!] Both baseline and comparator are empty. Run preprocess with data that yields both splits.")
             sys.exit(1)
         if df_b.empty and len(df_c) > 0:
-            # Synthetic split so stability/drift have both non-empty: use first half as baseline, rest as comparator
             n = max(1, len(df_c) // 2)
             df_b = df_c.iloc[:n].copy()
             df_c = df_c.iloc[n:].copy()

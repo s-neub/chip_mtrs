@@ -231,19 +231,30 @@ if __name__ == "__main__":
     
     # 1. Build a minimal mock job JSON to simulate platform init payload
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    mock_job = {
-        "rawJson": json.dumps({
-            "referenceModel": {},
-            "jobParameters": {}
-        })
+    # Minimal job schema so ModelOp SDK extract_input_schema succeeds (local run only)
+    _minimal_schema = {
+        "name": "chip_m2",
+        "type": "record",
+        "fields": [
+            {"name": "ai_overall_status", "type": "string", "dataClass": "categorical", "role": "score", "protectedClass": False, "driftCandidate": True, "specialValues": [], "scoringOptional": False},
+            {"name": "hitl_qa_decision", "type": "string", "dataClass": "categorical", "role": "label", "protectedClass": False, "driftCandidate": True, "specialValues": [], "scoringOptional": False},
+        ],
     }
-    
-    # 2. Call init()
+    mock_job = {"rawJson": json.dumps({"referenceModel": {"storedModel": {"modelMetaData": {"inputSchema": [{"schemaDefinition": _minimal_schema}]}}}, "jobParameters": {}})}
     init(mock_job)
-    
-    # 3. Load test data (full columns so schema columns exist; platform may pre-filter when invoking metrics())
+    # 3. Load test data: from CHIP_data (preprocessing monitor output) or local JSON if present
+    chip_data_dir = os.path.join(os.path.dirname(script_dir), 'CHIP_data')
     try:
-        df_c = pd.read_json(os.path.join(script_dir, 'CHIP_mtr_2_comparator.json'), orient='records')
+        comp_json = os.path.join(script_dir, 'CHIP_mtr_2_comparator.json')
+        comp_csv = os.path.join(chip_data_dir, 'CHIP_comparator.csv')
+        if os.path.exists(comp_json):
+            df_c = pd.read_json(comp_json, orient='records')
+        elif os.path.exists(comp_csv):
+            df_c = pd.read_csv(comp_csv)
+            print("[*] Loaded comparator from CHIP_data (preprocessing monitor output).")
+        else:
+            print("[!] No test data. Run CHIP_mtr_data preprocessing first or place CHIP_mtr_2_comparator in this dir.")
+            sys.exit(1)
         if df_c.empty:
             print("[!] Comparator is empty. Run preprocess with data that yields comparator records.")
             sys.exit(1)
