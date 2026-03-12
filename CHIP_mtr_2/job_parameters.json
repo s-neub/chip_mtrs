@@ -1,0 +1,10 @@
+{
+  "AI_FAIL_VALUES": [
+    "FAIL"
+  ],
+  "HITL_POSITIVE_VALUES": [
+    "REJECTED",
+    "REPROCESS",
+    "PENDING"
+  ]
+}

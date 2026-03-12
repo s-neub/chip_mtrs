@@ -11,17 +11,52 @@ import os
 import pandas as pd
 import json
 import sys
-import modelop.monitors.stability as stability
-import modelop.monitors.drift as drift
-import modelop.utils as utils
+from pathlib import Path
 
-logger = utils.configure_logger()
+try:
+    import modelop.monitors.stability as stability
+    import modelop.monitors.drift as drift
+    import modelop.utils as utils
+    _MODELOP_IMPORT_ERROR = None
+except Exception as exc:
+    stability = None
+    drift = None
+    utils = None
+    _MODELOP_IMPORT_ERROR = exc
+
+class _FallbackLogger:
+    def info(self, message):
+        print(message)
+
+    def warning(self, message):
+        print(message)
+
+    def error(self, message):
+        print(message)
+
+
+logger = utils.configure_logger() if utils is not None else _FallbackLogger()
 
 JOB = {}
 GROUP = None
 JOB_PARAMETERS = {}
 M3_AI_FAIL_VALUES = {"FAIL"}
 M3_HITL_POSITIVE_VALUES = {"REJECTED", "REPROCESS", "PENDING"}
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_JOB_PARAMETERS_PATH = _SCRIPT_DIR / "job_parameters.json"
+
+
+def _load_local_job_parameters():
+    if not _JOB_PARAMETERS_PATH.exists():
+        return {}
+    try:
+        return json.loads(_JOB_PARAMETERS_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        logger.warning(f"Unable to parse {_JOB_PARAMETERS_PATH.name}; using script defaults. {exc}")
+        return {}
+
+
+LOCAL_JOB_PARAMETERS = _load_local_job_parameters()
 
 
 def _to_native(x):
@@ -86,7 +121,7 @@ def _compute_reviewer_stats(df: pd.DataFrame):
     df['hitl_reviewer_id'] = df['hitl_reviewer_id'].fillna('Unknown').astype(str)
     if not pd.api.types.is_numeric_dtype(df['hitl_qa_decision']):
         df['hitl_qa_decision'] = df['hitl_qa_decision'].apply(
-            lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+            lambda x: 1.0 if str(x).strip().upper() in M3_HITL_POSITIVE_VALUES else 0.0
         )
     team_avg = float(df['hitl_qa_decision'].mean())
     grp = df.groupby('hitl_reviewer_id', as_index=False).agg(
@@ -127,7 +162,7 @@ def _compute_time_series(df: pd.DataFrame):
     df['_date'] = df['_dt'].dt.date
     if not pd.api.types.is_numeric_dtype(df['hitl_qa_decision']):
         df['hitl_qa_decision'] = df['hitl_qa_decision'].apply(
-            lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+            lambda x: 1.0 if str(x).strip().upper() in M3_HITL_POSITIVE_VALUES else 0.0
         )
     daily = df.groupby('_date', as_index=False).agg(
         rejection_rate=('hitl_qa_decision', 'mean'),
@@ -172,7 +207,7 @@ def _compute_reviewer_time_series(df: pd.DataFrame):
     df['_date'] = df['_dt'].dt.date
     if not pd.api.types.is_numeric_dtype(df['hitl_qa_decision']):
         df['hitl_qa_decision'] = df['hitl_qa_decision'].apply(
-            lambda x: 1.0 if str(x).strip().upper() in ("REJECTED", "REPROCESS", "PENDING") else 0.0
+            lambda x: 1.0 if str(x).strip().upper() in M3_HITL_POSITIVE_VALUES else 0.0
         )
     out = {}
     for reviewer_id, grp in df.groupby('hitl_reviewer_id'):
@@ -358,6 +393,11 @@ def _build_m3_visualizations(result: dict, df_sample: pd.DataFrame) -> dict:
 
 # modelop.init
 def init(job_json: dict) -> None:
+    if _MODELOP_IMPORT_ERROR is not None:
+        raise ModuleNotFoundError(
+            "The 'modelop' package is not available. Install the runtime package or run this monitor in ModelOp Runtime."
+        ) from _MODELOP_IMPORT_ERROR
+
     """
     Initializes the job, extracts group information, and validates schema fail-fast.
     
@@ -379,7 +419,8 @@ def init(job_json: dict) -> None:
         logger.warning(f"Could not parse rawJson in init. Falling back to defaults: {e}")
         job = {}
 
-    JOB_PARAMETERS = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    runtime_params = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    JOB_PARAMETERS = {**LOCAL_JOB_PARAMETERS, **runtime_params}
     GROUP = job.get("referenceModel", {}).get("group", None)
 
     top_n = JOB_PARAMETERS.get("M3_TOP_N_FEATURES", M3_TOP_N_FEATURES)
@@ -490,8 +531,8 @@ if __name__ == "__main__":
     }
     mock_job = {"rawJson": json.dumps({"referenceModel": {"storedModel": {"modelMetaData": {"inputSchema": [{"schemaDefinition": _minimal_schema}]}}}, "jobParameters": {}})}
     init(mock_job)
-    # 3. Load test data: from CHIP_data (preprocessing monitor output) or local JSON if present
-    chip_data_dir = os.path.join(os.path.dirname(script_dir), 'CHIP_data')
+    # 3. Load test data: from CHIP_mtr_data/CHIP_data (preprocessing monitor output) or local JSON if present
+    chip_data_dir = os.path.join(os.path.dirname(script_dir), 'CHIP_mtr_data', 'CHIP_data')
     try:
         base_json = os.path.join(script_dir, 'CHIP_mtr_3_baseline.json')
         comp_json = os.path.join(script_dir, 'CHIP_mtr_3_comparator.json')
@@ -503,7 +544,7 @@ if __name__ == "__main__":
         elif os.path.exists(base_csv) and os.path.exists(comp_csv):
             df_b = pd.read_csv(base_csv)
             df_c = pd.read_csv(comp_csv)
-            print("[*] Loaded baseline/comparator from CHIP_data (preprocessing monitor output).")
+            print("[*] Loaded baseline/comparator from CHIP_mtr_data/CHIP_data (preprocessing monitor output).")
         else:
             print("[!] No test data. Run CHIP_mtr_data preprocessing first or place CHIP_mtr_3_baseline/comparator in this dir.")
             sys.exit(1)

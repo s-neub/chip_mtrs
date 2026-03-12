@@ -1,0 +1,11 @@
+{
+  "AI_FAIL_VALUES": [
+    "FAIL"
+  ],
+  "HITL_POSITIVE_VALUES": [
+    "REJECTED",
+    "REPROCESS",
+    "PENDING"
+  ],
+  "M3_TOP_N_FEATURES": 20
+}

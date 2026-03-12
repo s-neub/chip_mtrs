@@ -19,6 +19,10 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, ".."))
+_DATA_DIR = os.path.join(_REPO_ROOT, "CHIP_mtr_data")
+
 def safe_json_loads(x):
     """Safely parse JSON strings, returning an empty dict on failure."""
     if pd.isna(x) or str(x).strip() == "":
@@ -30,8 +34,8 @@ def safe_json_loads(x):
 
 def load_and_flatten_data():
     """Loads the JSON DB extracts and flattens nested structures."""
-    activity_file = 'batch_activity_log_202603042226.json'
-    feedback_file = 'ai_feedback_202603042225.json'
+    activity_file = os.path.join(_DATA_DIR, 'batch_activity_log_202603042226.json')
+    feedback_file = os.path.join(_DATA_DIR, 'ai_feedback_202603042225.json')
     
     # 1. Load Activity Log
     try:
@@ -59,7 +63,7 @@ def load_and_flatten_data():
 
     return df_act, df_fb
 
-def load_claude_data(directory="AI Responses"):
+def load_claude_data(directory=os.path.join(_DATA_DIR, "AI Responses")):
     """Scans the AI Responses directory to profile raw Claude outputs."""
     print(f"Loading Claude JSONs from '{directory}'...")
     json_files = glob.glob(os.path.join(directory, "*.json"))
@@ -275,7 +279,7 @@ if __name__ == "__main__":
     df_act, df_fb = load_and_flatten_data()
     
     # Load AI Responses
-    df_claude_batch, df_claude_row = load_claude_data("AI Responses")
+    df_claude_batch, df_claude_row = load_claude_data()
     
     # Generate PDF
     generate_pdf_report(df_act, df_fb, df_claude_batch, df_claude_row)

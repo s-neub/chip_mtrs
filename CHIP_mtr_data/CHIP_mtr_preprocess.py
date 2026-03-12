@@ -10,10 +10,10 @@ ai_feedback are included; monitors pre-filter columns as needed.
 Operations:
     1. Derives Human Ground Truth; flattens Claude AI responses with full dimensions.
     2. Enriches batch-level aggregates from activity and feedback logs.
-    3. Merges and evaluates records against config (config.yaml or DEFAULT_CONFIG).
+    3. Merges and evaluates records against job_parameters and DEFAULT_CONFIG.
     4. Splits into Baseline and Comparator (DATE, VOLUME, or data-driven).
-    5. Writes CHIP_data/CHIP_master.csv and .json (with dataset, split_method).
-    6. Exports full column set to CHIP_mtr_1, CHIP_mtr_2, CHIP_mtr_3 (always baseline + comparator).
+    5. Writes CHIP_mtr_data/CHIP_data/CHIP_master.csv and .json (with dataset, split_method).
+    6. Writes CHIP_mtr_data/CHIP_data/CHIP_baseline.csv and CHIP_comparator.csv.
     7. Generates schema, required_assets.json, README per monitor.
 """
 
@@ -25,11 +25,13 @@ import argparse
 import pandas as pd
 from datetime import timedelta, timezone
 
-try:
-    import yaml
-    YAML_AVAILABLE = True
-except ImportError:
-    YAML_AVAILABLE = False
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, ".."))
+_CHIP_DATA_DIR = os.path.join(_SCRIPT_DIR, "CHIP_data")
+_DEFAULT_ACTIVITY_FILE = os.path.join(_SCRIPT_DIR, "batch_activity_log_202603042226.json")
+_DEFAULT_FEEDBACK_FILE = os.path.join(_SCRIPT_DIR, "ai_feedback_202603042225.json")
+_DEFAULT_AI_RESPONSES_DIR = os.path.join(_SCRIPT_DIR, "AI Responses")
+_JOB_PARAMETERS_PATH = os.path.join(_SCRIPT_DIR, "job_parameters.json")
 
 # ==========================================
 # CONFIGURATION
@@ -57,11 +59,50 @@ DEFAULT_CONFIG = {
     }
 }
 
-def load_config(config_path="config.yaml"):
-    if YAML_AVAILABLE and os.path.exists(config_path):
-        with open(config_path, "r") as f:
-            return yaml.safe_load(f)
-    return DEFAULT_CONFIG
+
+def _load_local_job_parameters():
+    if not os.path.exists(_JOB_PARAMETERS_PATH):
+        return {}
+    try:
+        with open(_JOB_PARAMETERS_PATH, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        return payload if isinstance(payload, dict) else {}
+    except Exception:
+        return {}
+
+
+LOCAL_JOB_PARAMETERS = _load_local_job_parameters()
+
+def _resolve_path(path, base_dir=_SCRIPT_DIR):
+    if path is None:
+        return None
+    return path if os.path.isabs(path) else os.path.abspath(os.path.join(base_dir, path))
+
+
+def _effective_job_parameters(job_parameters=None):
+    params = {}
+    if isinstance(LOCAL_JOB_PARAMETERS, dict):
+        params.update(LOCAL_JOB_PARAMETERS)
+    if isinstance(job_parameters, dict):
+        params.update(job_parameters)
+    return params
+
+
+def _param(name, fallback, job_parameters=None):
+    return _effective_job_parameters(job_parameters).get(name, fallback)
+
+
+def _config_block(name, job_parameters=None):
+    block = _effective_job_parameters(job_parameters).get(name)
+    return block if isinstance(block, dict) else DEFAULT_CONFIG.get(name, {})
+
+
+def _monitor_2_performance_config(job_parameters=None):
+    block = _config_block("monitor_2_performance", job_parameters)
+    required_terms = {"TP", "FP", "TN", "FN"}
+    if all(term in block and isinstance(block.get(term), dict) for term in required_terms):
+        return block
+    return DEFAULT_CONFIG["monitor_2_performance"]
 
 
 def get_latest_flat_file(directory, pattern):
@@ -167,7 +208,7 @@ def derive_ground_truth(activity_file, feedback_file):
         })
     return pd.DataFrame(gt_records)
 
-def process_real_claude_responses(directory="AI Responses"):
+def process_real_claude_responses(directory=_DEFAULT_AI_RESPONSES_DIR):
     """Flatten AI response JSONs and attach all flattenable dimensions (header, document_type, row/item fields)."""
     flattened_rows = []
     for filepath in glob.glob(os.path.join(directory, "*.json")):
@@ -609,7 +650,7 @@ def _build_monitor_readme(monitor_name, description):
     common_notes = """## Data Notes
 - Baseline and comparator exports are full-dimensional batch data.
 - Monitor scripts pre-filter columns needed by their metrics functions.
-- `CHIP_data/CHIP_master.*` is always refreshed by preprocess runs.
+- Shared monitor input data is produced in `CHIP_mtr_data/CHIP_data/`.
 """
     if monitor_name == "CHIP_mtr_1":
         return f"""# CHIP_MTR_1 Monitor
@@ -671,24 +712,26 @@ def _build_monitor_readme(monitor_name, description):
 
 def export_monitor_assets(
     df_base, df_comp, monitor_name, schema_def, description, cols_to_keep_legend=None,
-    overwrite_controls=None, dmn_templates=None
+    overwrite_controls=None, dmn_templates=None, include_monitor_data=False
 ):
-    """Export ALL columns to baseline and comparator CSV/JSON; always write both files (even if empty)."""
+    """Write monitor assets; optionally write baseline/comparator files inside monitor folders."""
     os.makedirs(monitor_name, exist_ok=True)
-    all_cols_b = [c for c in df_base.columns]
-    all_cols_c = [c for c in df_comp.columns]
-    all_cols = list(dict.fromkeys(all_cols_b + all_cols_c))
-    df_b = df_base.copy() if not df_base.empty else pd.DataFrame(columns=all_cols_b if all_cols_b else all_cols)
-    df_c = df_comp.copy() if not df_comp.empty else pd.DataFrame(columns=all_cols_c if all_cols_c else all_cols)
-    for c in all_cols:
-        if c not in df_b.columns: df_b[c] = None
-        if c not in df_c.columns: df_c[c] = None
-
-    # Always write both baseline and comparator
-    df_b.to_csv(os.path.join(monitor_name, f'{monitor_name}_baseline.csv'), index=False)
-    df_b.to_json(os.path.join(monitor_name, f'{monitor_name}_baseline.json'), orient='records', date_format='iso')
-    df_c.to_csv(os.path.join(monitor_name, f'{monitor_name}_comparator.csv'), index=False)
-    df_c.to_json(os.path.join(monitor_name, f'{monitor_name}_comparator.json'), orient='records', date_format='iso')
+    monitor_id = os.path.basename(monitor_name.rstrip("/\\"))
+    if include_monitor_data:
+        all_cols_b = [c for c in df_base.columns]
+        all_cols_c = [c for c in df_comp.columns]
+        all_cols = list(dict.fromkeys(all_cols_b + all_cols_c))
+        df_b = df_base.copy() if not df_base.empty else pd.DataFrame(columns=all_cols_b if all_cols_b else all_cols)
+        df_c = df_comp.copy() if not df_comp.empty else pd.DataFrame(columns=all_cols_c if all_cols_c else all_cols)
+        for c in all_cols:
+            if c not in df_b.columns:
+                df_b[c] = None
+            if c not in df_c.columns:
+                df_c[c] = None
+        df_b.to_csv(os.path.join(monitor_name, f'{monitor_id}_baseline.csv'), index=False)
+        df_b.to_json(os.path.join(monitor_name, f'{monitor_id}_baseline.json'), orient='records', date_format='iso')
+        df_c.to_csv(os.path.join(monitor_name, f'{monitor_id}_comparator.csv'), index=False)
+        df_c.to_json(os.path.join(monitor_name, f'{monitor_id}_comparator.json'), orient='records', date_format='iso')
 
     overwrite_controls = overwrite_controls or {}
     _write_json_if_allowed(
@@ -712,7 +755,7 @@ def export_monitor_assets(
         overwrite_flag=overwrite_controls.get('overwrite_required_assets', False),
     )
 
-    readme_content = _build_monitor_readme(monitor_name, description)
+    readme_content = _build_monitor_readme(monitor_id, description)
     _write_text_if_allowed(
         os.path.join(monitor_name, 'README.md'),
         readme_content,
@@ -721,8 +764,8 @@ def export_monitor_assets(
 
     # DMN overwrite hook (active when template content is provided)
     dmn_templates = dmn_templates or {}
-    dmn_content = dmn_templates.get(monitor_name)
-    dmn_file = MONITOR_DMN_FILES.get(monitor_name)
+    dmn_content = dmn_templates.get(monitor_id)
+    dmn_file = MONITOR_DMN_FILES.get(monitor_id)
     if dmn_file and dmn_content:
         _write_text_if_allowed(
             os.path.join(monitor_name, dmn_file),
@@ -735,36 +778,51 @@ def export_monitor_assets(
 # ==========================================
 
 def execute_pipeline(
-    split_method='DATE',
+    split_method=None,
     days_threshold=None,
-    volume_threshold=5000,
+    volume_threshold=None,
     baseline_start_date=None,
-    activity_file='batch_activity_log_202603042226.json',
-    feedback_file='ai_feedback_202603042225.json',
-    ai_responses_dir='AI Responses',
-    config_path='config.yaml',
-    min_records_baseline=20,
-    min_records_comparator=20,
-    overwrite_readme=False,
-    overwrite_dmn=False,
-    overwrite_modelop_schema=False,
-    overwrite_required_assets=False,
-    overwrite_blank_schema_asset=False,
+    activity_file=None,
+    feedback_file=None,
+    ai_responses_dir=None,
+    min_records_baseline=None,
+    min_records_comparator=None,
+    overwrite_readme=None,
+    overwrite_dmn=None,
+    overwrite_modelop_schema=None,
+    overwrite_required_assets=None,
+    overwrite_blank_schema_asset=None,
     dmn_templates=None,
+    job_parameters=None,
 ):
     print("--- Starting MTR Data Preprocessing Pipeline ---\n")
-    config = load_config(config_path)
+    split_method = str(split_method or _param("split_method", "DATE", job_parameters)).upper()
+    days_threshold = days_threshold if days_threshold is not None else _param("days_threshold", None, job_parameters)
+    volume_threshold = int(volume_threshold if volume_threshold is not None else _param("volume_threshold", 5000, job_parameters))
+    min_records_baseline = int(min_records_baseline if min_records_baseline is not None else _param("min_records_baseline", 20, job_parameters))
+    min_records_comparator = int(min_records_comparator if min_records_comparator is not None else _param("min_records_comparator", 20, job_parameters))
+    overwrite_readme = bool(_param("overwrite_readme", False, job_parameters) if overwrite_readme is None else overwrite_readme)
+    overwrite_dmn = bool(_param("overwrite_dmn", False, job_parameters) if overwrite_dmn is None else overwrite_dmn)
+    overwrite_modelop_schema = bool(_param("overwrite_modelop_schema", False, job_parameters) if overwrite_modelop_schema is None else overwrite_modelop_schema)
+    overwrite_required_assets = bool(_param("overwrite_required_assets", False, job_parameters) if overwrite_required_assets is None else overwrite_required_assets)
+    overwrite_blank_schema_asset = bool(_param("overwrite_blank_schema_asset", False, job_parameters) if overwrite_blank_schema_asset is None else overwrite_blank_schema_asset)
+    baseline_start_date = baseline_start_date if baseline_start_date is not None else _param("baseline_start_date", None, job_parameters)
+    split_cfg = _config_block("split", job_parameters)
+    sources = _config_block("sources", job_parameters)
+    overwrite_cfg = _config_block("output_overwrite", job_parameters)
+    monitor_1_cfg = _config_block("monitor_1_stability", job_parameters)
+    monitor_2_cfg = _monitor_2_performance_config(job_parameters)
+    monitor_3_cfg = _config_block("monitor_3_calibration", job_parameters)
 
-    # Optional: resolve paths from config (latest-file selection by pattern)
-    sources = config.get('sources') or {}
-    act_dir = sources.get('activity_directory', '.')
+    # Optional: resolve paths from job parameters (latest-file selection by pattern)
+    act_dir = _resolve_path(sources.get('activity_directory', _SCRIPT_DIR), _SCRIPT_DIR)
     act_pat = sources.get('activity_pattern')
     if act_pat:
         resolved_activity = get_latest_flat_file(act_dir, act_pat)
         if resolved_activity:
             activity_file = resolved_activity
             print(f"[*] Using latest activity file: {activity_file}")
-    fb_dir = sources.get('feedback_directory', '.')
+    fb_dir = _resolve_path(sources.get('feedback_directory', _SCRIPT_DIR), _SCRIPT_DIR)
     fb_pat = sources.get('feedback_pattern')
     if fb_pat:
         resolved_feedback = get_latest_flat_file(fb_dir, fb_pat)
@@ -772,10 +830,12 @@ def execute_pipeline(
             feedback_file = resolved_feedback
             print(f"[*] Using latest feedback file: {feedback_file}")
     if sources.get('ai_responses_dir') is not None:
-        ai_responses_dir = sources.get('ai_responses_dir')
+        ai_responses_dir = _resolve_path(sources.get('ai_responses_dir'), _SCRIPT_DIR)
+    activity_file = _resolve_path(activity_file or _param("activity_file", _DEFAULT_ACTIVITY_FILE, job_parameters), _SCRIPT_DIR)
+    feedback_file = _resolve_path(feedback_file or _param("feedback_file", _DEFAULT_FEEDBACK_FILE, job_parameters), _SCRIPT_DIR)
+    ai_responses_dir = _resolve_path(ai_responses_dir or _param("ai_responses_dir", _DEFAULT_AI_RESPONSES_DIR, job_parameters), _SCRIPT_DIR)
 
-    # Optional: override split parameters from config
-    split_cfg = config.get('split') or {}
+    # Optional: override split parameters from nested job parameters
     if split_cfg:
         if 'days_threshold' in split_cfg:
             days_threshold = split_cfg['days_threshold']
@@ -783,7 +843,6 @@ def execute_pipeline(
             min_records_baseline = split_cfg['min_records_baseline']
         if 'min_records_comparator' in split_cfg:
             min_records_comparator = split_cfg['min_records_comparator']
-    overwrite_cfg = config.get('output_overwrite') or {}
     overwrite_readme = overwrite_cfg.get('overwrite_readme', overwrite_readme)
     overwrite_dmn = overwrite_cfg.get('overwrite_dmn', overwrite_dmn)
     overwrite_modelop_schema = overwrite_cfg.get('overwrite_modelop_schema', overwrite_modelop_schema)
@@ -808,7 +867,7 @@ def execute_pipeline(
     df_final = pd.merge(df_ai_flattened, df_ground_truth, on='batchId', how='left')
     df_final['hitl_qa_decision'] = df_final['hitl_qa_decision'].fillna('Pending')
     df_final = enrich_batch_dimensions(df_final, activity_file, feedback_file)
-    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(config['monitor_2_performance'],), axis=1)
+    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(monitor_2_cfg,), axis=1)
 
     df_final['ai_verification_time'] = pd.to_datetime(df_final['ai_verification_time'], format='mixed', utc=True)
     df_final = df_final.sort_values('ai_verification_time').reset_index(drop=True)
@@ -825,7 +884,7 @@ def execute_pipeline(
 
     split_method_upper = split_method.upper()
     if split_method_upper == 'DATE':
-        baseline_fraction = (config.get('split') or {}).get('baseline_fraction')
+        baseline_fraction = split_cfg.get('baseline_fraction')
         if baseline_fraction is not None and days_threshold is None:
             threshold_date, split_method_str = compute_threshold_date_by_fraction(df_final, baseline_fraction=baseline_fraction)
             if threshold_date is None:
@@ -858,7 +917,7 @@ def execute_pipeline(
         raise ValueError("split_method must be 'DATE' or 'VOLUME'.")
 
     # Master dataset with dataset + split_method
-    os.makedirs('CHIP_data', exist_ok=True)
+    os.makedirs(_CHIP_DATA_DIR, exist_ok=True)
     df_base_master = df_base_master.copy()
     df_comp_master = df_comp_master.copy()
     df_base_master['dataset'] = 'baseline'
@@ -866,9 +925,9 @@ def execute_pipeline(
     df_comp_master['dataset'] = 'comparator'
     df_comp_master['split_method'] = split_method_str
     df_master = pd.concat([df_base_master, df_comp_master], ignore_index=True)
-    df_master.to_csv(os.path.join('CHIP_data', 'CHIP_master.csv'), index=False)
-    df_master.to_json(os.path.join('CHIP_data', 'CHIP_master.json'), orient='records', date_format='iso')
-    print(f"[*] CHIP_data/CHIP_master.csv and CHIP_master.json written (dataset + split_method columns).")
+    df_master.to_csv(os.path.join(_CHIP_DATA_DIR, 'CHIP_master.csv'), index=False)
+    df_master.to_json(os.path.join(_CHIP_DATA_DIR, 'CHIP_master.json'), orient='records', date_format='iso')
+    print(f"[*] CHIP_mtr_data/CHIP_data/CHIP_master.csv and CHIP_master.json written (dataset + split_method columns).")
 
     # Remove auxiliary columns from baseline/comparator for monitor dirs (they already have dataset/split_method in master only; for monitor dirs we don't add dataset/split_method)
     df_base_master = df_base_master.drop(columns=['dataset', 'split_method'], errors='ignore')
@@ -878,15 +937,16 @@ def execute_pipeline(
     full_schema = build_full_schema(all_columns, score_columns=['ai_overall_status', 'hitl_qa_decision'], label_columns=['hitl_qa_decision'])
 
     # Monitor 1
-    m1_allowed = parse_config_list(config['monitor_1_stability'].get('allowed_ai_overall_status', []))
+    m1_allowed = parse_config_list(monitor_1_cfg.get('allowed_ai_overall_status', []))
     df_m1_base = df_base_master[df_base_master['ai_overall_status'].isin(m1_allowed)]
     df_m1_comp = df_comp_master[df_comp_master['ai_overall_status'].isin(m1_allowed)]
     export_monitor_assets(
-        df_m1_base, df_m1_comp, 'CHIP_mtr_1', full_schema,
+        df_m1_base, df_m1_comp, os.path.join(_REPO_ROOT, 'CHIP_mtr_1'), full_schema,
         "Tracks AI output stability and drift between baseline and comparator windows.",
         ['ai_overall_status', 'testName', 'ai_meets_specification'],
         overwrite_controls=overwrite_controls,
         dmn_templates=dmn_templates,
+        include_monitor_data=False,
     )
     print("  -> CHIP_mtr_1/ assets created.")
 
@@ -894,24 +954,26 @@ def execute_pipeline(
     df_m2_base = df_base_master[df_base_master['cm_term'] != 'EXCLUDE']
     df_m2_comp = df_comp_master[df_comp_master['cm_term'] != 'EXCLUDE']
     export_monitor_assets(
-        df_m2_base, df_m2_comp, 'CHIP_mtr_2', full_schema,
+        df_m2_base, df_m2_comp, os.path.join(_REPO_ROOT, 'CHIP_mtr_2'), full_schema,
         "Evaluates AI-vs-HITL concordance using classification metrics and class balance context.",
         ['ai_overall_status', 'hitl_qa_decision'],
         overwrite_controls=overwrite_controls,
         dmn_templates=dmn_templates,
+        include_monitor_data=False,
     )
     print("  -> CHIP_mtr_2/ assets created.")
 
     # Monitor 3
-    m3_allowed = parse_config_list(config['monitor_3_calibration'].get('allowed_hitl_qa_decision', []))
+    m3_allowed = parse_config_list(monitor_3_cfg.get('allowed_hitl_qa_decision', []))
     df_m3_base = df_base_master[df_base_master['hitl_qa_decision'].isin(m3_allowed)]
     df_m3_comp = df_comp_master[df_comp_master['hitl_qa_decision'].isin(m3_allowed)]
     export_monitor_assets(
-        df_m3_base, df_m3_comp, 'CHIP_mtr_3', full_schema,
+        df_m3_base, df_m3_comp, os.path.join(_REPO_ROOT, 'CHIP_mtr_3'), full_schema,
         "Tracks HITL reviewer calibration drift, intervention patterns, and decision stability over time.",
         ['hitl_qa_decision', 'hitl_reviewer_id', 'testName'],
         overwrite_controls=overwrite_controls,
         dmn_templates=dmn_templates,
+        include_monitor_data=False,
     )
     print("  -> CHIP_mtr_3/ assets created.")
     print("\n--- Pipeline Complete ---")
@@ -919,33 +981,42 @@ def execute_pipeline(
 
 def execute_pipeline_csv_only(
     output_dir,
-    split_method='DATE',
+    split_method=None,
     days_threshold=None,
-    volume_threshold=5000,
+    volume_threshold=None,
     baseline_start_date=None,
     activity_file=None,
     feedback_file=None,
     ai_responses_dir=None,
-    config_path='config.yaml',
-    min_records_baseline=20,
-    min_records_comparator=20,
+    min_records_baseline=None,
+    min_records_comparator=None,
+    job_parameters=None,
 ):
     """
     Run the ETL pipeline and write only CSV outputs to output_dir:
     CHIP_master.csv, CHIP_baseline.csv, CHIP_comparator.csv.
     Used by the CHIP_mtr_data monitor. Input paths can be overridden via arguments
-    or resolved from config (when activity_file, feedback_file, ai_responses_dir are None).
+    or resolved from nested job parameters (when activity_file, feedback_file, ai_responses_dir are None).
     """
-    config = load_config(config_path)
-    sources = config.get('sources') or {}
-    act_dir = sources.get('activity_directory', '.')
+    split_method = str(split_method or _param("split_method", "DATE", job_parameters)).upper()
+    days_threshold = days_threshold if days_threshold is not None else _param("days_threshold", None, job_parameters)
+    volume_threshold = int(volume_threshold if volume_threshold is not None else _param("volume_threshold", 5000, job_parameters))
+    min_records_baseline = int(min_records_baseline if min_records_baseline is not None else _param("min_records_baseline", 20, job_parameters))
+    min_records_comparator = int(min_records_comparator if min_records_comparator is not None else _param("min_records_comparator", 20, job_parameters))
+    baseline_start_date = baseline_start_date if baseline_start_date is not None else _param("baseline_start_date", None, job_parameters)
+    split_cfg = _config_block("split", job_parameters)
+    sources = _config_block("sources", job_parameters)
+    monitor_2_cfg = _monitor_2_performance_config(job_parameters)
+    act_dir = _resolve_path(sources.get('activity_directory', _SCRIPT_DIR), _SCRIPT_DIR)
     act_pat = sources.get('activity_pattern')
-    fb_dir = sources.get('feedback_directory', '.')
+    fb_dir = _resolve_path(sources.get('feedback_directory', _SCRIPT_DIR), _SCRIPT_DIR)
     fb_pat = sources.get('feedback_pattern')
-    activity_file = activity_file or (get_latest_flat_file(act_dir, act_pat) if act_pat else None) or 'batch_activity_log_202603042226.json'
-    feedback_file = feedback_file or (get_latest_flat_file(fb_dir, fb_pat) if fb_pat else None) or 'ai_feedback_202603042225.json'
-    ai_responses_dir = ai_responses_dir or sources.get('ai_responses_dir') or 'AI Responses'
-    split_cfg = config.get('split') or {}
+    activity_file = activity_file or (get_latest_flat_file(act_dir, act_pat) if act_pat else None) or _param("activity_file", _DEFAULT_ACTIVITY_FILE, job_parameters)
+    feedback_file = feedback_file or (get_latest_flat_file(fb_dir, fb_pat) if fb_pat else None) or _param("feedback_file", _DEFAULT_FEEDBACK_FILE, job_parameters)
+    ai_responses_dir = ai_responses_dir or sources.get('ai_responses_dir') or _param("ai_responses_dir", _DEFAULT_AI_RESPONSES_DIR, job_parameters)
+    activity_file = _resolve_path(activity_file, _SCRIPT_DIR)
+    feedback_file = _resolve_path(feedback_file, _SCRIPT_DIR)
+    ai_responses_dir = _resolve_path(ai_responses_dir, _SCRIPT_DIR)
     if split_cfg:
         if 'days_threshold' in split_cfg:
             days_threshold = split_cfg['days_threshold']
@@ -962,7 +1033,7 @@ def execute_pipeline_csv_only(
     df_final = pd.merge(df_ai_flattened, df_ground_truth, on='batchId', how='left')
     df_final['hitl_qa_decision'] = df_final['hitl_qa_decision'].fillna('Pending')
     df_final = enrich_batch_dimensions(df_final, activity_file, feedback_file)
-    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(config['monitor_2_performance'],), axis=1)
+    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(monitor_2_cfg,), axis=1)
     df_final['ai_verification_time'] = pd.to_datetime(df_final['ai_verification_time'], format='mixed', utc=True)
     df_final = df_final.sort_values('ai_verification_time').reset_index(drop=True)
     df_final['weight'] = 1.0
@@ -973,7 +1044,7 @@ def execute_pipeline_csv_only(
 
     split_method_upper = split_method.upper()
     if split_method_upper == 'DATE':
-        baseline_fraction = (config.get('split') or {}).get('baseline_fraction')
+        baseline_fraction = split_cfg.get('baseline_fraction')
         if baseline_fraction is not None and days_threshold is None:
             threshold_date, split_method_str = compute_threshold_date_by_fraction(df_final, baseline_fraction=baseline_fraction)
             if threshold_date is None:
@@ -1029,16 +1100,15 @@ def execute_pipeline_csv_only(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run CHIP preprocess pipeline with optional non-data overwrite controls.")
-    parser.add_argument("--split-method", choices=["DATE", "VOLUME"], default="DATE")
-    parser.add_argument("--days-threshold", type=int, default=None)
-    parser.add_argument("--volume-threshold", type=int, default=5000)
-    parser.add_argument("--baseline-start-date", type=str, default=None)
-    parser.add_argument("--activity-file", type=str, default='batch_activity_log_202603042226.json')
-    parser.add_argument("--feedback-file", type=str, default='ai_feedback_202603042225.json')
-    parser.add_argument("--ai-responses-dir", type=str, default='AI Responses')
-    parser.add_argument("--config-path", type=str, default='config.yaml')
-    parser.add_argument("--min-records-baseline", type=int, default=20)
-    parser.add_argument("--min-records-comparator", type=int, default=20)
+    parser.add_argument("--split-method", choices=["DATE", "VOLUME"], default=_param("split_method", "DATE"))
+    parser.add_argument("--days-threshold", type=int, default=_param("days_threshold", None))
+    parser.add_argument("--volume-threshold", type=int, default=_param("volume_threshold", 5000))
+    parser.add_argument("--baseline-start-date", type=str, default=_param("baseline_start_date", None))
+    parser.add_argument("--activity-file", type=str, default=_param("activity_file", _DEFAULT_ACTIVITY_FILE))
+    parser.add_argument("--feedback-file", type=str, default=_param("feedback_file", _DEFAULT_FEEDBACK_FILE))
+    parser.add_argument("--ai-responses-dir", type=str, default=_param("ai_responses_dir", _DEFAULT_AI_RESPONSES_DIR))
+    parser.add_argument("--min-records-baseline", type=int, default=_param("min_records_baseline", 20))
+    parser.add_argument("--min-records-comparator", type=int, default=_param("min_records_comparator", 20))
     parser.add_argument("--overwrite-readme", action="store_true", help="Allow README.md overwrite in monitor folders.")
     parser.add_argument("--overwrite-dmn", action="store_true", help="Allow .dmn overwrite when DMN templates are provided.")
     parser.add_argument("--overwrite-modelop-schema", action="store_true", help="Allow modelop_schema.json overwrite.")
@@ -1054,7 +1124,6 @@ if __name__ == "__main__":
         activity_file=args.activity_file,
         feedback_file=args.feedback_file,
         ai_responses_dir=args.ai_responses_dir,
-        config_path=args.config_path,
         min_records_baseline=args.min_records_baseline,
         min_records_comparator=args.min_records_comparator,
         overwrite_readme=args.overwrite_readme,

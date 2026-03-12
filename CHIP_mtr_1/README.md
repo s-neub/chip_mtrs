@@ -1,41 +1,101 @@
-# CHIP_MTR_1 Monitor
+# CHIP_mtr_1 Monitor
 
-Tracks AI output stability and drift between baseline and comparator windows.
+_AI output stability and drift monitoring across baseline and comparator windows._
 
-## What this monitor tells you
-- Detects shifts between baseline and comparator for AI outputs and related dimensions.
-- Highlights which features are most unstable (CSI) and how that aligns with drift distance (JS).
+## Overview
 
-## Required Assets
-- **Baseline Data:** Historical records used to establish expected behavior.
-- **Comparator Data:** Recent production records used for current evaluation.
-- **Test Results Output:** `CHIP_mtr_1_test_results.json` written by local smoke runs.
+This monitor compares baseline versus comparator behavior for AI outcomes. You use it to detect distribution shifts and stability movement before they become production issues.
 
-## ModelOp UI File Roles
-- Set `CHIP_mtr1_ai_stability_drift.py` as both **Model Source** and **Primary Source**.
-- Set `README.md` as **Readme File**.
-- Set `required_assets.json` as the required-assets specification file.
-- Do not assign `*_test_results.json`, `*_error.txt`, `*.dmn`, `modelop_schema.json`, or `blank_schema_asset.csv` as runtime input data assets.
+## Mermaid compatibility profile (GitHub native)
 
-## Runtime Initialization Contract
-- Entry points are `init(job_json)` and `metrics(df_baseline, df_sample)`.
-- `init()` stores the runtime `JOB` object and parses `rawJson.jobParameters` with defaults.
-- Optional job parameters:
-  - `AI_FAIL_VALUES` (default: `["FAIL"]`) for converting AI status to numeric score.
-  - `M1_TOP_N_FEATURES` (default: `20`) to cap plotted feature count.
-- Runtime assets in this folder:
-  - baseline: `CHIP_mtr_1_baseline.json` / `CHIP_mtr_1_baseline.csv`
-  - comparator: `CHIP_mtr_1_comparator.json` / `CHIP_mtr_1_comparator.csv`
-  - test results: `CHIP_mtr_1_test_results.json`
+- Keep README Mermaid diagrams on core syntax supported by GitHub Markdown.
+- Avoid `%%{init...}%%` and ELK renderer directives in committed README files.
+- Prefer simple `flowchart` and other baseline chart types for reliable rendering.
 
-## UI Output Interpretation
-- **Generic Table:** High-level summary (largest/smallest CSI, overall PSI, date windows).
-- **Generic Bar Graph / Horizontal Bar Graph:** Side-by-side CSI (`data1`) and JS distance (`data2`) by feature.
-- **Generic Scatter Plot:** CSI vs JS relationship across top features.
-- **Generic Pie/Donut:** Comparator AI outcome mix.
+## Why this matters
 
-## Data Notes
-- Baseline and comparator exports are full-dimensional batch data.
-- Monitor scripts pre-filter columns needed by their metrics functions.
-- `CHIP_data/CHIP_master.*` is always refreshed by preprocess runs.
+- You get early warning on AI behavior drift.
+- You can quickly identify which feature dimensions are moving.
+- You provide governance-friendly evidence with consistent visual outputs.
+
+## Visual logic
+
+```mermaid
+flowchart LR
+  baseline["Baseline dataset"] --> monitor["CHIP_mtr_1 metrics"]
+  comparator["Comparator dataset"] --> monitor
+  monitor --> outputs["PSI/CSI + drift visuals + summary table"]
+```
+
+## ModelOp Center setup
+
+### Entry points
+
+- Primary source: `CHIP_mtr1_ai_stability_drift.py`
+- Runtime functions: `init(job_json)`, `metrics(df_baseline, df_sample)`
+
+### Required assets
+
+- Baseline Data
+- Comparator Data
+
+### Job parameters
+
+`job_parameters.json` location: `CHIP_mtr_1/job_parameters.json`
+
+Precedence:
+
+1. Runtime `job_json.rawJson.jobParameters`
+2. Local `job_parameters.json`
+3. Script defaults
+
+| Parameter | Type | Default | Purpose |
+|---|---|---|---|
+| `AI_FAIL_VALUES` | list of strings | `["FAIL"]` | Values treated as AI failure class |
+| `M1_TOP_N_FEATURES` | number | `20` | Max features rendered in charts |
+
+Example:
+
+```json
+{
+  "AI_FAIL_VALUES": ["FAIL", "PLANNED"],
+  "M1_TOP_N_FEATURES": 15
+}
+```
+
+## Local development
+
+1. Run preprocessing first to generate shared CSVs in `CHIP_mtr_data/CHIP_data`.
+2. Run `python CHIP_mtr_1/CHIP_mtr1_ai_stability_drift.py`.
+3. Check local output file `CHIP_mtr_1_test_results.json` if generated.
+
+## Output contract
+
+- Summary table: largest/smallest CSI and overall PSI context
+- Bar and horizontal bar charts: CSI and JS distance by feature
+- Scatter plot: CSI versus JS distance
+- Pie and donut charts: comparator AI outcome mix
+
+## Troubleshooting
+
+Canonical terminal decoder: see `../README.md` (Master Troubleshooting Table).
+
+| Context | Likely cause | Fix |
+|---|---|---|
+| `modelop` import fails during local run | Runtime package is not installed locally.<br>Typical terminal signal:<br>`ModuleNotFoundError: No module named 'modelop'` | Run in ModelOp Runtime, or install the local runtime dependency stack used by your platform. |
+| FutureWarning about `__MISSING__` dtype appears | This warning is emitted by ModelOp stability internals and is currently non-fatal.<br>It indicates a potential future pandas/runtime compatibility issue. | Treat as non-blocking for current runs.<br>Track dependency versions for upgrade planning, and optionally suppress this known warning in local runner logs for cleaner onboarding output. |
+| Stability summary shows `Largest/Smallest Stability Shift (CSI)` as `None` / `null` | CSI summary keys were not populated in this run shape, even though other metrics (for example PSI) are present. | Keep run if core outputs are present.<br>Owner enhancement: add fallback derivation of top/bottom CSI from `stability[0].values[*].stability_index`. |
+| No baseline/comparator files found | Preprocessing did not run, source paths changed, or output location was overridden. | Run preprocessing first and verify files in `CHIP_mtr_data/CHIP_data`.<br>If ingestion is migrated (for example S3), validate resolved source and output paths in preprocessing logs before M1 execution. |
+| Chart output is sparse | `M1_TOP_N_FEATURES` is too low or available monitored features are limited. | Increase `M1_TOP_N_FEATURES` in runtime job parameters or `CHIP_mtr_1/job_parameters.json`. |
+| Class mapping does not match expectations | `AI_FAIL_VALUES` does not match incoming score/status values from preprocess output. | Update `AI_FAIL_VALUES` in runtime job parameters or `CHIP_mtr_1/job_parameters.json` to align with business classification semantics. |
+
+## Additional resources
+
+| Resource | Link |
+|---|---|
+| ModelOp Custom Monitor Training | `docs/ModelOp_Center_Custom_Monitor_Developer_Intro_Training_Jan-2024.pptx.pdf` |
+| Monitor results analysis | `docs/CHIP_mtr_test_results_analysis.md` |
+| ModelOp Center - Getting Started | [Getting Started with ModelOp Center](https://modelopdocs.atlassian.net/wiki/spaces/dv33/pages/1764458543/Getting+Started+with+ModelOp+Center) |
+| ModelOp Center - Terminology | [ModelOp Center Terminology](https://modelopdocs.atlassian.net/wiki/spaces/dv33/pages/1764458571/ModelOp+Center+Terminology) |
+| ModelOp Center - Command Center | [Getting Oriented with ModelOp Center's Command Center](https://modelopdocs.atlassian.net/wiki/spaces/dv33/pages/1764458595/Getting+Oriented+with+ModelOp+Center+s+Command+Center) |
 

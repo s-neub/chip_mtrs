@@ -9,12 +9,12 @@ It performs the following operations:
     4. Flattens the nested Claude JSON responses into test-level tabular rows.
     5. Normalizes diverse AI strings into binary PASS/FAIL.
     6. Merges the AI predictions and Human Ground Truth.
-    7. Loads filtering logic from 'config.yaml' (or hardcoded defaults).
+    7. Loads filtering logic from 'job_parameters.json' (or hardcoded defaults).
     8. Splits the final data into Baseline (old data) and Comparator (new data) for ModelOp.
     9. Exports specific, filtered data subsets for Monitor 1, Monitor 2, and Monitor 3.
 
 Prerequisites:
-    pip install pandas numpy pyyaml
+    pip install pandas numpy
 """
 
 import json
@@ -22,13 +22,11 @@ import os
 import glob
 import pandas as pd
 import numpy as np
-import yaml
 from datetime import datetime, timedelta, timezone
 
-try:
-    YAML_AVAILABLE = True
-except ImportError:
-    YAML_AVAILABLE = False
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, ".."))
+_DATA_DIR = os.path.join(_REPO_ROOT, "CHIP_mtr_data")
 
 # ==========================================
 # CONFIGURATION SETTINGS
@@ -61,11 +59,20 @@ DEFAULT_CONFIG = {
     }
 }
 
-def load_config(config_path="config.yaml"):
-    """Loads external YAML config or returns the default hardcoded dictionary."""
-    if YAML_AVAILABLE and os.path.exists(config_path):
-        with open(config_path, "r") as f:
-            return yaml.safe_load(f)
+def load_job_parameter_blocks(job_parameters_path=os.path.join(_DATA_DIR, "job_parameters.json")):
+    """Loads monitor parameter blocks from job_parameters.json or returns hardcoded defaults."""
+    if os.path.exists(job_parameters_path):
+        try:
+            with open(job_parameters_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+            if isinstance(payload, dict):
+                return {
+                    "monitor_1_stability": payload.get("monitor_1_stability", DEFAULT_CONFIG["monitor_1_stability"]),
+                    "monitor_2_performance": payload.get("monitor_2_performance", DEFAULT_CONFIG["monitor_2_performance"]),
+                    "monitor_3_calibration": payload.get("monitor_3_calibration", DEFAULT_CONFIG["monitor_3_calibration"]),
+                }
+        except Exception:
+            pass
     return DEFAULT_CONFIG
 
 def parse_config_list(val):
@@ -182,7 +189,7 @@ def derive_ground_truth(activity_file: str, feedback_file: str) -> pd.DataFrame:
 # STEP 2 & 3: PARSE AND FLATTEN REAL CLAUDE DATA
 # ==========================================
 
-def process_real_claude_responses(directory: str = "AI Responses") -> pd.DataFrame:
+def process_real_claude_responses(directory: str = os.path.join(_DATA_DIR, "AI Responses")) -> pd.DataFrame:
     """
     Scans the provided directory for Claude JSON output files.
     Detects the schema (BG, CCA, DA, EM) and flattens them into tabular format.
@@ -328,7 +335,7 @@ def process_real_claude_responses(directory: str = "AI Responses") -> pd.DataFra
 # ==========================================
 
 def map_m2_confusion_term(row, m2_config):
-    """Maps a row to a Confusion Matrix Term based on Config logic."""
+    """Maps a row to a confusion-matrix term based on job-parameter logic."""
     ai = str(row.get('ai_overall_status', ''))
     qa = str(row.get('hitl_qa_decision', ''))
     
@@ -346,18 +353,18 @@ def map_m2_confusion_term(row, m2_config):
 def execute_pipeline(split_method='DATE', days_threshold=30, volume_threshold=5000, baseline_start_date=None):
     print("--- Starting BMS CHIP Data Pipeline ---\n")
     
-    config = load_config("config.yaml")
+    param_blocks = load_job_parameter_blocks(os.path.join(_DATA_DIR, "job_parameters.json"))
     
-    activity_file = 'batch_activity_log_202603042226.json'
-    feedback_file = 'ai_feedback_202603042225.json'
+    activity_file = os.path.join(_DATA_DIR, 'batch_activity_log_202603042226.json')
+    feedback_file = os.path.join(_DATA_DIR, 'ai_feedback_202603042225.json')
     
     print("[*] Deriving Human Ground Truth from DB Logs...")
     df_ground_truth = derive_ground_truth(activity_file, feedback_file)
     
-    df_ai_flattened = process_real_claude_responses("AI Responses")
+    df_ai_flattened = process_real_claude_responses(os.path.join(_DATA_DIR, "AI Responses"))
     
     if df_ai_flattened.empty:
-        print("\n[!] Pipeline halted: No AI records were successfully processed. Ensure 'AI Responses' folder contains the valid JSON files.")
+        print("\n[!] Pipeline halted: No AI records were successfully processed. Ensure CHIP_mtr_data/AI Responses contains valid JSON files.")
         return
         
     full_ai_file = 'extracted_claude_responses_full.csv'
@@ -368,9 +375,9 @@ def execute_pipeline(split_method='DATE', days_threshold=30, volume_threshold=50
     df_final = pd.merge(df_ai_flattened, df_ground_truth, on='batchId', how='left')
     df_final['hitl_qa_decision'] = df_final['hitl_qa_decision'].fillna('Pending')
     
-    m1_allowed = parse_config_list(config['monitor_1_stability'].get('allowed_ai_overall_status', []))
-    m3_allowed = parse_config_list(config['monitor_3_calibration'].get('allowed_hitl_qa_decision', []))
-    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(config['monitor_2_performance'],), axis=1)
+    m1_allowed = parse_config_list(param_blocks['monitor_1_stability'].get('allowed_ai_overall_status', []))
+    m3_allowed = parse_config_list(param_blocks['monitor_3_calibration'].get('allowed_hitl_qa_decision', []))
+    df_final['cm_term'] = df_final.apply(map_m2_confusion_term, args=(param_blocks['monitor_2_performance'],), axis=1)
 
     print(f"[*] Formatting data for Split Method: {split_method.upper()}")
     df_final['ai_verification_time'] = pd.to_datetime(df_final['ai_verification_time'], format='mixed', utc=True)

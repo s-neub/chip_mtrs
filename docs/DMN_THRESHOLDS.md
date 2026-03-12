@@ -19,4 +19,4 @@ CHIP monitors use CHIP-specific DMN files for pass/fail and category/action. Thr
 ## cm_term and threshold evolution
 
 - **cm_term:** In ModelOp, the comparator term (e.g. baseline vs comparator window) is set by the split (e.g. `date-30`, `volume-5000`) in the preprocess. The same term is reflected in the monitor assets and in CHIP_master (`split_method`, `dataset`).
-- **Evolving thresholds:** As production data and ModelOp Customer Success (CS) guidance evolve, update the DMN files (or the platform-linked DMN) and, if needed, config or constants. Document any change and the rationale (e.g. “KS p-value threshold relaxed to 0.01 for feature X per CS”) in this doc or in a change log.
+- **Evolving thresholds:** As production data and ModelOp Customer Success (CS) guidance evolve, update the DMN files (or the platform-linked DMN) and, if needed, job parameters or constants. Document any change and the rationale (e.g. “KS p-value threshold relaxed to 0.01 for feature X per CS”) in this doc or in a change log.

@@ -11,15 +11,48 @@ import os
 import pandas as pd
 import json
 import sys
-import modelop.monitors.performance as performance
-import modelop.utils as utils
+from pathlib import Path
 
-logger = utils.configure_logger()
+try:
+    import modelop.monitors.performance as performance
+    import modelop.utils as utils
+    _MODELOP_IMPORT_ERROR = None
+except Exception as exc:
+    performance = None
+    utils = None
+    _MODELOP_IMPORT_ERROR = exc
+class _FallbackLogger:
+    def info(self, message):
+        print(message)
+
+    def warning(self, message):
+        print(message)
+
+    def error(self, message):
+        print(message)
+
+
+logger = utils.configure_logger() if utils is not None else _FallbackLogger()
 
 JOB = {}
 JOB_PARAMETERS = {}
 M2_AI_FAIL_VALUES = {"FAIL"}
 M2_HITL_POSITIVE_VALUES = {"REJECTED", "REPROCESS", "PENDING"}
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_JOB_PARAMETERS_PATH = _SCRIPT_DIR / "job_parameters.json"
+
+
+def _load_local_job_parameters():
+    if not _JOB_PARAMETERS_PATH.exists():
+        return {}
+    try:
+        return json.loads(_JOB_PARAMETERS_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        logger.warning(f"Unable to parse {_JOB_PARAMETERS_PATH.name}; using script defaults. {exc}")
+        return {}
+
+
+LOCAL_JOB_PARAMETERS = _load_local_job_parameters()
 
 
 def _to_native(x):
@@ -148,6 +181,11 @@ def _build_m2_visualizations(result: dict, df_eval: pd.DataFrame) -> dict:
 
 # modelop.init
 def init(job_json: dict) -> None:
+    if _MODELOP_IMPORT_ERROR is not None:
+        raise ModuleNotFoundError(
+            "The 'modelop' package is not available. Install the runtime package or run this monitor in ModelOp Runtime."
+        ) from _MODELOP_IMPORT_ERROR
+
     """
     Initializes the job and validates schema fail-fast using the UI asset.
     """
@@ -164,7 +202,8 @@ def init(job_json: dict) -> None:
         logger.warning(f"Could not parse rawJson in init. Falling back to defaults: {e}")
         job = {}
 
-    JOB_PARAMETERS = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    runtime_params = job.get("jobParameters", {}) if isinstance(job.get("jobParameters", {}), dict) else {}
+    JOB_PARAMETERS = {**LOCAL_JOB_PARAMETERS, **runtime_params}
     M2_AI_FAIL_VALUES = _normalized_value_set(
         JOB_PARAMETERS.get("AI_FAIL_VALUES"),
         default_values=["FAIL"]
@@ -242,8 +281,8 @@ if __name__ == "__main__":
     }
     mock_job = {"rawJson": json.dumps({"referenceModel": {"storedModel": {"modelMetaData": {"inputSchema": [{"schemaDefinition": _minimal_schema}]}}}, "jobParameters": {}})}
     init(mock_job)
-    # 3. Load test data: from CHIP_data (preprocessing monitor output) or local JSON if present
-    chip_data_dir = os.path.join(os.path.dirname(script_dir), 'CHIP_data')
+    # 3. Load test data: from CHIP_mtr_data/CHIP_data (preprocessing monitor output) or local JSON if present
+    chip_data_dir = os.path.join(os.path.dirname(script_dir), 'CHIP_mtr_data', 'CHIP_data')
     try:
         comp_json = os.path.join(script_dir, 'CHIP_mtr_2_comparator.json')
         comp_csv = os.path.join(chip_data_dir, 'CHIP_comparator.csv')
@@ -251,7 +290,7 @@ if __name__ == "__main__":
             df_c = pd.read_json(comp_json, orient='records')
         elif os.path.exists(comp_csv):
             df_c = pd.read_csv(comp_csv)
-            print("[*] Loaded comparator from CHIP_data (preprocessing monitor output).")
+            print("[*] Loaded comparator from CHIP_mtr_data/CHIP_data (preprocessing monitor output).")
         else:
             print("[!] No test data. Run CHIP_mtr_data preprocessing first or place CHIP_mtr_2_comparator in this dir.")
             sys.exit(1)
