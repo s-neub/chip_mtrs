@@ -6,12 +6,6 @@ _Your preprocessing entry point for all CHIP monitor data._
 
 This monitor prepares the shared datasets used by all downstream CHIP monitors. You run it first, and it produces the master, baseline, and comparator CSVs consumed by `CHIP_mtr_1`, `CHIP_mtr_2`, and `CHIP_mtr_3`.
 
-## Mermaid compatibility profile (GitHub native)
-
-- Keep README Mermaid diagrams on core syntax supported by GitHub Markdown.
-- Avoid `%%{init...}%%` and ELK renderer directives in committed README files.
-- Prefer simple `flowchart` and other baseline chart types for reliable rendering.
-
 ## Why this matters
 
 - You keep ETL logic in one place instead of duplicating transforms in each monitor.

@@ -6,12 +6,6 @@ _AI versus human QA concordance monitoring for classification performance._
 
 This monitor measures agreement between AI decisions and human QA decisions on comparator data. It converts labels into a configurable binary mapping and then computes standard classification metrics.
 
-## Mermaid compatibility profile (GitHub native)
-
-- Keep README Mermaid diagrams on core syntax supported by GitHub Markdown.
-- Avoid `%%{init...}%%` and ELK renderer directives in committed README files.
-- Prefer simple `flowchart` and other baseline chart types for reliable rendering.
-
 ## Why this matters
 
 - You can quantify AI and HITL alignment with objective metrics.

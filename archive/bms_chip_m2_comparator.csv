@@ -1,3 +1,0 @@
-businessKey,batchId,ai_verification_time,ai_overall_status,testName,ai_meets_specification,hitl_qa_decision,hitl_reviewer_id,hitl_review_time,cm_term
-ADJ9318-DA-SUMMARY,ADJ9318,2026-02-27 15:49:03+00:00,PASS,DA_Summary_Check,PASS,Reprocess,USER-251.0,2026-03-04T11:22:38.624Z,FN
-ADE5350-DA-SUMMARY,ADE5350,2026-03-04 11:34:43+00:00,PASS,DA_Summary_Check,PASS,Reprocess,USER-251.0,2026-03-04T15:41:26.625Z,FN

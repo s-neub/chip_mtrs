@@ -6,12 +6,6 @@ _AI output stability and drift monitoring across baseline and comparator windows
 
 This monitor compares baseline versus comparator behavior for AI outcomes. You use it to detect distribution shifts and stability movement before they become production issues.
 
-## Mermaid compatibility profile (GitHub native)
-
-- Keep README Mermaid diagrams on core syntax supported by GitHub Markdown.
-- Avoid `%%{init...}%%` and ELK renderer directives in committed README files.
-- Prefer simple `flowchart` and other baseline chart types for reliable rendering.
-
 ## Why this matters
 
 - You get early warning on AI behavior drift.

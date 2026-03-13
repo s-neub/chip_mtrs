@@ -1,3 +1,0 @@
-batchId,testName,ai_meets_specification,ai_overall_status,ai_verification_time
-B1,T1,true,PASS,2026-01-01
-B2,T2,false,FAIL,2026-01-02

@@ -6,12 +6,6 @@ _HITL reviewer calibration and stability monitoring across baseline and comparat
 
 This monitor tracks human QA behavior over time, including reviewer-level drift and team-level calibration. It helps you identify policy drift, fatigue patterns, and consistency gaps.
 
-## Mermaid compatibility profile (GitHub native)
-
-- Keep README Mermaid diagrams on core syntax supported by GitHub Markdown.
-- Avoid `%%{init...}%%` and ELK renderer directives in committed README files.
-- Prefer simple `flowchart` and other baseline chart types for reliable rendering.
-
 ## Why this matters
 
 - You can monitor human decision stability, not just model output stability.
