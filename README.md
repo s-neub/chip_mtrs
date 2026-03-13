@@ -1,11 +1,9 @@
+<div style="border:1px solid #d6d6d1; border-left:6px solid #006630; padding:10px 12px; margin:12px 0; background:#ffffff; color:#0b0d0a;">
+
+#
 # CHIP ModelOp Monitors
 
 _Canonical project guide for the BMS CHIP custom monitor suite._
-
-<div style="border:1px solid #d6d6d1; border-left:6px solid #006630; padding:10px 12px; margin:12px 0; background:#ffffff; color:#0b0d0a;">
-<strong>ModelOp Branding</strong><br/>
-Primary: <code>#006630</code> &nbsp;|&nbsp; Text: <code>#0b0d0a</code> &nbsp;|&nbsp; Supporting: <code>#d6d6d1</code>
-</div>
 
 ## <img src="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/menu_book/default/48px.svg" width="24" height="24" alt="overview" /> Overview
 
@@ -154,15 +152,15 @@ gantt
 journey
     title BMS CHIP Monitor Value Journey
     section IngestionAndPreparation
-      LoadSourceRecordsAndValidateLineage: 4: DataEngineer
-      ProduceSharedBaselineAndComparatorAssets: 5: CHIP_mtr_data_Owner
+    LoadSourceRecordsAndValidateLineage: 4: DataEngineer
+    ProduceSharedBaselineAndComparatorAssets: 5: CHIP_mtr_data_Owner
     section MonitorEvaluation
-      EvaluateAIStabilityAndDriftSignals: 4: M1_Owner
-      EvaluateAIAndHITLAgreementMetrics: 4: M2_Owner
-      EvaluateReviewerCalibrationTrends: 4: M3_Owner
+    EvaluateAIStabilityAndDriftSignals: 4: M1_Owner
+    EvaluateAIAndHITLAgreementMetrics: 4: M2_Owner
+    EvaluateReviewerCalibrationTrends: 4: M3_Owner
     section GovernanceAndAction
-      ReviewKPIGapsAgainstSuccessCriteria: 5: QAAndRiskTeam
-      ApproveRemediationOrMonitorTuningChanges: 4: ModelOpsLead
+    ReviewKPIGapsAgainstSuccessCriteria: 5: QAAndRiskTeam
+    ApproveRemediationOrMonitorTuningChanges: 4: ModelOpsLead
 ```
 
 ## <img src="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/warning/default/48px.svg" width="24" height="24" alt="troubleshooting" /> Master Troubleshooting Table (Canonical)

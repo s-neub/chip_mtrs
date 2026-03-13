@@ -1,4 +1,7 @@
-# CHIP_mtr_data Monitor
+<div style="border:1px solid #d6d6d1; border-left:6px solid #006630; padding:10px 12px; margin:12px 0; background:#ffffff; color:#0b0d0a;">
+
+#
+<h1 style="text-align:center;">CHIP Monitor 0: Data Preprocessing</h1>
 
 _Your preprocessing entry point for all CHIP monitor data._
 

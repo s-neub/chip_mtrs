@@ -1,3 +1,6 @@
+<div style="border:1px solid #d6d6d1; border-left:6px solid #006630; padding:10px 12px; margin:12px 0; background:#ffffff; color:#0b0d0a;">
+
+#
 # CHIP_mtr_2 Monitor
 
 _AI versus human QA concordance monitoring for classification performance._
